@@ -1,7 +1,7 @@
 CXX = clang++
 UNAME := $(shell uname)
 
-multest_objs = multest.o naiveFunctions.o
+multest_objs = multest.o naiveFunctions.o naiveMuller.o
 
 .PHONY: all clean
 
@@ -11,7 +11,7 @@ all: multest
 	$(CXX) -c -o $@ $<
 
 multest: $(multest_objs)
-	$(CXX) -o $@ $^ -larmadillo
+	$(CXX) -o $@ $^
 
 clean:
 	-rm -f *.o multest

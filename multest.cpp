@@ -2,11 +2,14 @@
 #include <iostream>
 #include "naiveFunctions.h"
 #include "muller.h"
+using namespace std;
 
 
-void main()
+int main()
 {
+    test();
     cout << "main checking in" << endl;
+    return 0;
 }
 // XXX include the naiveFunctions.h
 
