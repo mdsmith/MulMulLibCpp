@@ -1,13 +1,18 @@
 #ifndef MULLER_H
 #define MULLER_H
 
-void test();
+class Muller
+{
+public:
+    virtual void test() =0;
+};
 
-// Phase 1:
-// XXX define the class
+class NaiveMuller: public Muller
+{
+public:
+    NaiveMuller();
+    void test();
+    ~NaiveMuller();
+};
 
-
-
-// Phase 2:
-// XXX define the abstract class
 # endif

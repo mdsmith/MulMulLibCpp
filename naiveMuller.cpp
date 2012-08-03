@@ -2,9 +2,15 @@
 #include <iostream>
 using namespace std;
 
-// XXX implement the class
-
-void test()
+NaiveMuller::NaiveMuller()
+{
+    cout << "naiveMuller constructed" << endl;
+}
+void NaiveMuller::test()
 {
     cout << "naiveMuller checking in" << endl;
+}
+NaiveMuller::~NaiveMuller()
+{
+    cout << "naiveMuller destructed" << endl;
 }

@@ -1,17 +1,17 @@
-
 #include <iostream>
 #include "naiveFunctions.h"
 #include "muller.h"
 using namespace std;
 
-
 int main()
 {
-    test();
+    NaiveMuller nM = NaiveMuller();
+    nM.test();
+    Muller* m = &nM;
+    m->test();
     cout << "main checking in" << endl;
     return 0;
 }
-// XXX include the naiveFunctions.h
 
 // XXX make the test arrays (A, B)
 
