@@ -24,12 +24,20 @@ int main()
 
     NaiveMuller nM = NaiveMuller();
     Muller* m = &nM;
-    m->test();
-    cout << "main checking in" << endl;
+    m->update_A(A, 0, DIM1, DIM2);
+    m->update_B(B, 0, DIM2, DIM1);
+    m->multiply();
+    float* mulC = m->get_C(0, DIM1, DIM1);
+
+    bool passed = true;
+    for (int i=0; i < DIM1*DIM2; i++)
+    {
+        if (goldenC[i] != mulC[i])
+            passed = false;
+    }
+    if (passed)
+        cout << "Test PASSED!" << endl;
+    else
+        cout << "Test FAILED!" << endl;
     return 0;
 }
-
-// XXX pass in the arrays
-// XXX get back the arrays
-// XXX compare to the output of naiveFunctions.h
-// XXX print passed/fail
