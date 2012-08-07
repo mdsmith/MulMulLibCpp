@@ -1,6 +1,12 @@
+// Author: Martin Smith
+// Project: Flexible MULtiple MULtiplicaiton LIBrary in C Plus Plus.
+// Created: Early August 2012
+// Last Edited: 8/5/2012
+
 #include "muller.h"
 #include <iostream>
 #include "naiveFunctions.h"
+#include "helperFunctions.h"
 using namespace std;
 
 
@@ -13,37 +19,18 @@ NaiveMuller::NaiveMuller()
 }
 
 
-void NaiveMuller::update_A(float* A, int offset, int ah, int ud)
-{
-    this->A.data = A;
-    this->A.offset = offset;
-    this->A.h = ah;
-    this->A.w = ud;
-    this->A.set = true;
-}
-
-
-void NaiveMuller::update_B(float* B, int offset, int ud, int bw)
-{
-    this->B.data = B;
-    this->B.offset = offset;
-    this->B.h = ud;
-    this->B.w = bw;
-    this->B.set = true;
-}
-
-
 void NaiveMuller::multiply()
 {
-    C.data = naive_matrix_multiply(A.data, B.data, A.h, A.w, B.w);
-    C.set = true;
+    //C.data = naive_matrix_multiply(A.data, B.data, A.h, A.w, B.w);
+    set_C(naive_matrix_multiply(A.data, B.data, A.h, A.w, B.w), A.h, B.w);
 }
 
 
 float* NaiveMuller::get_C(int offset, int width, int height)
 {
+    multiply();
     if (C.set)
-        return C.data;
+        return matrix_slice(C, offset, width, height);
     else
     {
         cout << "C is not set!" << endl;
