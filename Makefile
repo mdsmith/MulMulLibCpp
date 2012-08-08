@@ -1,5 +1,8 @@
-CXX = clang++
 UNAME := $(shell uname)
+CXX = clang++
+ifeq ($(UNAME), Linux)
+CXX = g++
+endif
 
 multest_objs = multest.o naiveFunctions.o naiveMuller.o muller.o helperFunctions.o gpuMuller.o
 
@@ -16,7 +19,7 @@ all: multest
 	$(CXX) -c -o $@ $<
 
 multest: $(multest_objs)
-	$(CXX) $(ocl_lib) -o $@ $^
+	$(CXX) -o $@ $^ $(ocl_lib)
 
 clean:
 	-rm -f *.o multest

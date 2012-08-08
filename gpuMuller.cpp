@@ -7,6 +7,7 @@
 
 #include "muller.h"
 #include <iostream>
+#include <stdio.h>
 #include "helperFunctions.h"
 #include <sys/stat.h>
 #include <sys/time.h>
