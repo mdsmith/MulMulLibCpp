@@ -5,7 +5,7 @@
 //
 // XXX Implement scaling
 
-#include "muller.h"
+#include "gpuMuller.h"
 #include <iostream>
 #include <stdio.h>
 #include "helperFunctions.h"
@@ -37,6 +37,12 @@ GPUMuller::GPUMuller()
     A.set = false;
     B.set = false;
     C.set = false;
+}
+
+
+const char* GPUMuller::get_name()
+{
+    return "GPU";
 }
 
 

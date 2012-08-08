@@ -18,6 +18,11 @@ NaiveMuller::NaiveMuller()
     C.set = false;
 }
 
+const char* NaiveMuller::get_name()
+{
+    return "Naive";
+}
+
 
 void NaiveMuller::multiply()
 {

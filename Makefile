@@ -4,7 +4,10 @@ ifeq ($(UNAME), Linux)
 CXX = g++
 endif
 
-multest_objs = multest.o naiveFunctions.o naiveMuller.o muller.o helperFunctions.o gpuMuller.o
+oclmultest_objs = multest.o naiveFunctions.o naiveMuller.o muller.o helperFunctions.o gpuMuller.o
+multest_objs = multest.o naiveFunctions.o naiveMuller.o muller.o helperFunctions.o
+
+ocl: flags += -DOCL
 
 ocl_lib = -framework OpenCL
 ifeq ($(UNAME), Linux)
@@ -13,13 +16,18 @@ endif
 
 .PHONY: all clean
 
-all: multest
+all: mul
 
 %.o: %.cpp
 	$(CXX) -c -o $@ $<
 
-multest: $(multest_objs)
-	$(CXX) -o $@ $^ $(ocl_lib)
+mul: $(multest_objs)
+	$(CXX) -c -o multest.o multest.cpp
+	$(CXX) $(flags) -o multest $^
+
+ocl: $(oclmultest_objs)
+	$(CXX) $(flags) -c -o multest.o multest.cpp
+	$(CXX) $(flags) -o oclmultest $^ $(ocl_lib)
 
 clean:
-	-rm -f *.o multest
+	-rm -f *.o multest oclmultest

@@ -7,6 +7,11 @@
 #include <iostream>
 using namespace std;
 
+const char* Muller::get_name()
+{
+    return "Abstract?!";
+}
+
 void Muller::update_A(float* A, int offset, int ah, int ud)
 {
     update_matrix(this->A, A, offset, ah, ud);

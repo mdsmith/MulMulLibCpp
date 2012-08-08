@@ -17,6 +17,7 @@ protected:
     void bound_matrix(struct Matrix &m, int offset, int h, int w);
     virtual void multiply() =0;
 public:
+    virtual const char* get_name();
     void update_A(float* A, int offset, int ah, int ud);
     void set_A(float* A, int num_rows, int num_cols);
     void bound_A(int offset, int ah, int ud);
@@ -34,22 +35,10 @@ private:
     void multiply();
 public:
     NaiveMuller();
+    const char* get_name();
     float* get_C(int offset, int width, int height);
     void test();
     ~NaiveMuller();
 };
 
-class GPUMuller: public Muller
-{
-private:
-    void multiply();
-    void setup_context();
-    void update_buffers();
-public:
-    GPUMuller();
-    float* get_C(int offset, int width, int height);
-    void test();
-    ~GPUMuller();
-};
-
-# endif
+#endif
