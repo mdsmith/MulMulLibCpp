@@ -63,12 +63,12 @@ omp: $(omp_objs) ompmultest.o
 ###### FMA Test ######
 
 fma_objs = fmaMuller.o $(naive_objs) $(core_objs)
-fma: fma_lib = -mfma4
-fma: flags = -DFMA -Ofast -march=bdver1
+fma: fma_lib = -Ofast -ffast-math -mfma4 -march=bdver1
+fma: flags = -DFMA
 fma: CXX = g++-4.7
 
 fmaNF.o: naiveFunctions.cpp
-	$(CXX)  $(flags) -c -o $@ $< $(omp_lib)
+	$(CXX)  $(flags) -c -o $@ $< $(fma_lib)
 
 fmamultest.o: multest.cpp
 	$(CXX) $(flags) -c -o $@ $<
