@@ -47,7 +47,6 @@ float* fma_matrix_multiply(float A[], float B[], int ah, int ud, int bw)
 {
     float *C = new float[ah * bw];
     float sum = 0.0f;
-    #pragma omp parallel for private(sum)
     for (int i = 0; i < ah; i++)
     {
         for (int j = 0; j < bw; j++)
