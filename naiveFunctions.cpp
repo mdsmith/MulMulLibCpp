@@ -1,7 +1,7 @@
 #include "naiveFunctions.h"
 #include <iostream>
 #ifdef FMA
-#include "fma4intrin.h"
+#include "x86intrin.h"
 #endif
 using namespace std;
 
