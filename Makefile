@@ -14,18 +14,19 @@ naive_objs = naiveFunctions.o naiveMuller.o
 ###### Core Test ######
 
 mul_objs = $(naive_objs) $(core_objs)
+mul: flags += -O3
 
 multest.o: multest.cpp
-	$(CXX) -c -o multest.o multest.cpp
+	$(CXX) $(flags) -c -o multest.o multest.cpp
 
 mul: $(mul_objs) multest.o
-	$(CXX) -o multest $^
+	$(CXX) $(flags) -o multest $^
 
 
 ###### OCL Test ######
 
 ocl_objs = gpuMuller.o $(naive_objs) $(core_objs)
-ocl: flags = -DOCL
+ocl: flags += -DOCL
 
 ocl: ocl_lib = -framework OpenCL
 ifeq ($(UNAME), Linux)
@@ -43,11 +44,11 @@ ocl: $(ocl_objs) oclmultest.o
 
 omp_objs = ompMuller.o naiveMuller.o ompNF.o $(core_objs)
 omp: omp_lib = -fopenmp
-omp: flags = -DOMP
+omp: flags += -DOMP -O3
 omp: CXX = g++
 
 ompNF.o: naiveFunctions.cpp
-	$(CXX)  -c -o $@ $< $(omp_lib)
+	$(CXX)  $(flags) -c -o $@ $< $(omp_lib)
 
 ompMuller.o: ompMuller.cpp
 	$(CXX)  -c -o $@ $< $(omp_lib)
@@ -63,7 +64,8 @@ omp: $(omp_objs) ompmultest.o
 
 fma_objs = fmaMuller.o $(naive_objs) $(core_objs)
 fma: fma_lib = -mfma4
-fma: flags = -DFMA
+fma: flags = -DFMA -Ofast -march=dbver1
+fma: CXX = g++-4.7
 
 fmamultest.o: multest.cpp
 	$(CXX) $(flags) -c -o $@ $<
@@ -88,7 +90,7 @@ arma: $(arma_objs) armamultest.o
 ###### ETC ######
 
 %.o: %.cpp
-	$(CXX) -c -o $@ $<
+	$(CXX) $(flags) -c -o $@ $<
 
 clean:
 	-rm -f *.o multest oclmultest fmamultest ompmultest armamultest
