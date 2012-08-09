@@ -67,6 +67,9 @@ fma: fma_lib = -mfma4
 fma: flags = -DFMA -Ofast -march=bdver1
 fma: CXX = g++-4.7
 
+fmaNF.o: naiveFunctions.cpp
+	$(CXX)  $(flags) -c -o $@ $< $(omp_lib)
+
 fmamultest.o: multest.cpp
 	$(CXX) $(flags) -c -o $@ $<
 
@@ -90,7 +93,7 @@ arma: $(arma_objs) armamultest.o
 ###### ETC ######
 
 %.o: %.cpp
-	$(CXX) $(flags) -c -o $@ $<
+	$(CXX) -c -o $@ $<
 
 clean:
 	-rm -f *.o multest oclmultest fmamultest ompmultest armamultest
