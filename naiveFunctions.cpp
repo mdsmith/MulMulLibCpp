@@ -1,8 +1,5 @@
 #include "naiveFunctions.h"
 #include <iostream>
-#ifdef FMA
-#include "x86intrin.h"
-#endif
 using namespace std;
 
 float* naive_matrix_multiply(float A[], float B[], int ah, int ud, int bw)
