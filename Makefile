@@ -64,7 +64,7 @@ omp: $(omp_objs) ompmultest.o
 
 fma_objs = fmaMuller.o $(naive_objs) $(core_objs)
 fma: fma_lib = -mfma4
-fma: flags = -DFMA -Ofast -march=dbver1
+fma: flags = -DFMA -Ofast
 fma: CXX = g++-4.7
 
 fmamultest.o: multest.cpp
