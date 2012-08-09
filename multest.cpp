@@ -4,6 +4,12 @@
 
 #ifdef OCL
 #include "gpuMuller.h"
+#elif defined OMP
+#include "ompMuller.h"
+#elif defined FMA
+#include "fmaMuller.h"
+#elif defined ARMA
+#include "armaMuller.h"
 #endif
 
 #include <iostream>
@@ -52,6 +58,15 @@ int main()
 #ifdef OCL
     GPUMuller gm = GPUMuller();
     allpasscode |= test_muller(&gm, goldenC);
+#elif defined OMP
+    OMPMuller om = OMPMuller();
+    allpasscode |= test_muller(&om, goldenC);
+#elif defined FMA
+    FMAMuller fm = FMAMuller();
+    allpasscode |= test_muller(&fm, goldenC);
+#elif defined ARMA
+    ArmaMuller am = ArmaMuller();
+    allpasscode |= test_muller(&am, goldenC);
 #endif
 
     return allpasscode;
