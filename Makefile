@@ -24,7 +24,7 @@ mul: $(mul_objs) multest.o
 
 ###### Opt Test ######
 
-opt_objs = naiveMuller.o optNF.o $(core_objs)
+opt_objs = optMuller.o optNF.o naiveMuller.o $(core_objs)
 opt_lib = -Ofast -ffast-math -fopenmp
 opt: flags = -DOMP
 opt: CXX = g++-4.7
@@ -32,8 +32,11 @@ opt: CXX = g++-4.7
 optNF.o: naiveFunctions.cpp
 	$(CXX) $(flags) -c -o $@ $< $(opt_lib)
 
+optMuller.o: ompMuller.cpp
+	$(CXX) $(flags) -c -o $@ $< $(opt_lib)
+
 opttest.o: multest.cpp
-	$(CXX)  $(flags) -c -o $@ $<
+	$(CXX) $(flags) -c -o $@ $<
 
 opt: $(opt_objs) opttest.o
 	$(CXX) $(flags) -o optmultest $^ $(opt_lib)
