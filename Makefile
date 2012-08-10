@@ -33,7 +33,7 @@ optNF.o: naiveFunctions.cpp
 	$(CXX) $(flags) -c -o $@ $< $(opt_lib)
 
 opttest.o: multest.cpp
-	$(CXX)  -c -o $@ $<
+	$(CXX)  $(flags) -c -o $@ $<
 
 opt: $(opt_objs) opttest.o
 	$(CXX) $(flags) -o optmultest $^ $(opt_lib)
