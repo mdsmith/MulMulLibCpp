@@ -111,4 +111,4 @@ arma: $(arma_objs) armamultest.o
 	$(CXX) -c -o $@ $<
 
 clean:
-	-rm -f *.o multest oclmultest fmamultest ompmultest armamultest
+	-rm -f *.o multest oclmultest fmamultest ompmultest armamultest optmultest

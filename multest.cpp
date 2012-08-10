@@ -19,7 +19,7 @@
 #include <sys/time.h>
 using namespace std;
 
-#define DIM1 2000
+#define DIM1 200
 #define DIM2 200
 float A[DIM1*DIM2];
 float B[DIM2*DIM1];
@@ -50,11 +50,13 @@ int main()
     elapsedTime = (t2.tv_sec -t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    cout << "Naive: " << elapsedTime << " ms.\n";
+    cout << "Golden (Naive): " << elapsedTime << " ms.\n";
 
-    NaiveMuller nm = NaiveMuller();
+    gettimeofday(&t1, NULL);
 
-    allpasscode |= test_muller(&nm, goldenC);
+    for (int i = 0; i < 100; i++)
+    {
+
 #ifdef OCL
     GPUMuller gm = GPUMuller();
     allpasscode |= test_muller(&gm, goldenC);
@@ -67,29 +69,40 @@ int main()
 #elif defined ARMA
     ArmaMuller am = ArmaMuller();
     allpasscode |= test_muller(&am, goldenC);
+#else
+    NaiveMuller nm = NaiveMuller();
+    allpasscode |= test_muller(&nm, goldenC);
 #endif
+
+    }
+    gettimeofday(&t2, NULL);
+
+    elapsedTime = (t2.tv_sec -t1.tv_sec) * 1000.0;
+    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+
+    cout << "per trial (mean): " << elapsedTime/100 << " ms.\n";
 
     return allpasscode;
 }
 
 int test_muller(Muller* m, float* golden)
 {
-    timeval t1, t2;
-    double elapsedTime;
+    //timeval t1, t2;
+    //double elapsedTime;
 
     m->set_A(A, DIM1, DIM2);
     m->set_B(B, DIM2, DIM1);
 
-    gettimeofday(&t1, NULL);
+    //gettimeofday(&t1, NULL);
 
     float* mulC = m->get_C(0, DIM1, DIM1);
 
-    gettimeofday(&t2, NULL);
+    //gettimeofday(&t2, NULL);
 
-    elapsedTime = (t2.tv_sec -t1.tv_sec) * 1000.0;
-    elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
+    //elapsedTime = (t2.tv_sec -t1.tv_sec) * 1000.0;
+    //elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    cout << m->get_name() << ": " << elapsedTime << " ms.\n";
+    //cout << m->get_name() << ": " << elapsedTime << " ms.\n";
 
     bool passed = true;
     for (int i=0; i < DIM1*DIM2; i++)
@@ -100,12 +113,12 @@ int test_muller(Muller* m, float* golden)
     }
     if (passed)
     {
-        cout << "Test PASSED!" << endl;
+        //cout << "Test PASSED!" << endl;
         return 0;
     }
     else
     {
-        cout << "Test FAILED!" << endl;
+        //cout << "Test FAILED!" << endl;
         return 1;
     }
 }
