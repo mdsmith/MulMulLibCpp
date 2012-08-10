@@ -25,17 +25,18 @@ mul: $(mul_objs) multest.o
 ###### Opt Test ######
 
 opt_objs = naiveMuller.o optNF.o $(core_objs)
-opt_lib = -Ofast -ffast-math
+opt_lib = -Ofast -ffast-math -fopenmp
+opt: flags = -DOMP
 opt: CXX = g++-4.7
 
 optNF.o: naiveFunctions.cpp
-	$(CXX) -c -o $@ $< $(opt_lib)
+	$(CXX) $(flags) -c -o $@ $< $(opt_lib)
 
 opttest.o: multest.cpp
 	$(CXX)  -c -o $@ $<
 
 opt: $(opt_objs) opttest.o
-	$(CXX) -o optmultest $^ $(opt_lib)
+	$(CXX) $(flags) -o optmultest $^ $(opt_lib)
 
 
 ###### OCL Test ######
@@ -78,7 +79,7 @@ omp: $(omp_objs) ompmultest.o
 ###### FMA Test ######
 
 fma_objs = fmaMuller.o naiveMuller.o fmaNF.o $(core_objs)
-fma: fma_lib = -Ofast -ffast-math -mfma4 -march=bdver1
+fma: fma_lib = -Ofast -ffast-math -mfma4 -march=bdver1 -fopenmp
 fma: flags = -DFMA
 fma: CXX = g++-4.7
 

@@ -19,7 +19,7 @@
 #include <sys/time.h>
 using namespace std;
 
-#define DIM1 200
+#define DIM1 2000
 #define DIM2 200
 float A[DIM1*DIM2];
 float B[DIM2*DIM1];
