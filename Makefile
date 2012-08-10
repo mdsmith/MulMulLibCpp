@@ -62,7 +62,7 @@ omp: $(omp_objs) ompmultest.o
 
 ###### FMA Test ######
 
-fma_objs = fmaMuller.o $(naive_objs) $(core_objs)
+fma_objs = fmaMuller.o naiveMuller.o fmaNF.o $(core_objs)
 fma: fma_lib = -Ofast -ffast-math -mfma4 -march=bdver1
 fma: flags = -DFMA
 fma: CXX = g++-4.7
