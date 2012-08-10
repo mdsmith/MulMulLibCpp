@@ -19,7 +19,7 @@
 #include <sys/time.h>
 using namespace std;
 
-#define DIM1 2000
+#define DIM1 200
 #define DIM2 200
 float A[DIM1*DIM2];
 float B[DIM2*DIM1];
@@ -54,7 +54,7 @@ int main()
 
     gettimeofday(&t1, NULL);
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 1000; i++)
     {
 
 #ifdef OCL
@@ -80,7 +80,7 @@ int main()
     elapsedTime = (t2.tv_sec -t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    cout << "per trial (mean): " << elapsedTime/100 << " ms.\n";
+    cout << "per trial (mean): " << elapsedTime/1000 << " ms.\n";
 
     return allpasscode;
 }
