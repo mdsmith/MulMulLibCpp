@@ -88,3 +88,48 @@ void Muller::bound_matrix(struct Matrix &m, int offset, int h, int w)
     m.h = h;
     m.w = w;
 }
+
+void Muller::print_A()
+{
+    print_mat(A);
+}
+
+void Muller::print_B()
+{
+    print_mat(B);
+}
+
+void Muller::print_C()
+{
+    print_mat(C);
+}
+
+// Print a matrix
+void Muller::print_mat(struct Matrix m)
+{
+    cout << "m.h: " << m.h;
+    cout << " m.w: " << m.w;
+    cout << " m.offset: " << m.offset;
+    cout << " m.data: " << endl;
+    int row_offset = m.offset / m.w;
+    int col_offset = m.offset % m.h;
+    cout << "{";
+    for (int i = row_offset; i < row_offset + m.h; i++)
+    {
+        cout << "{";
+        for (int j = col_offset; j < col_offset + m.w; j++)
+        {
+            if (j > col_offset && j < col_offset + m.w)
+                cout << ",";
+            printf("%1.0f", m.data[i*m.num_cols + j]);
+        }
+        if (i < row_offset + m.h-1)
+            cout << "},";
+        else
+            cout << "}";
+    }
+    cout << "}" << endl;
+
+}
+
+

@@ -140,6 +140,8 @@ void GPUMuller::setup_context()
 }
 
 // XXX this is pretty dang inefficient
+// XXX Hmmm, the whole buffer (pre-bound should be sent to the GPU, and the
+// boundary should be factored in with the parameters to the kernel.
 void GPUMuller::update_buffers()
 {
     // array rounding
