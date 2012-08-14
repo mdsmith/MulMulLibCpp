@@ -147,6 +147,10 @@ void GPUMuller::update_buffers()
     // array rounding
     int pad_to = 64;
 
+    int b_num_cols_round = round_up(B.num_cols, pad_to);
+    int a_num_cols_round = round_up(A.num_cols, pad_to);
+    int a_num_rows_round = round_up(A.num_rows, pad_to);
+
     int bw_round = round_up(B.w, pad_to);
     int ud_round = round_up(A.w, pad_to);
     int ah_round = round_up(A.h, pad_to);
@@ -155,9 +159,19 @@ void GPUMuller::update_buffers()
     int a_w_bound = A.w;
     int b_w_bound = B.w;
 
-    set_A(pad(A.data, A.h, A.w, pad_to), ah_round, ud_round);
-    set_B(pad(B.data, B.h, B.w, pad_to), ud_round, bw_round);
-    set_C(pad(C.data, C.h, C.w, pad_to), ah_round, bw_round);
+    cout << "Pre padding: " << endl;
+    print_A();
+    print_B();
+    print_C();
+
+    set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
+    set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
+    set_C(pad(C.data, C.num_rows, C.num_cols, pad_to), a_num_rows_round, b_num_cols_round);
+
+    cout << "Post padding: " << endl;
+    print_A();
+    print_B();
+    print_C();
 
     // work dim setup
     global_work_size[0] = ah_round;
@@ -169,7 +183,7 @@ void GPUMuller::update_buffers()
         err_num = clReleaseMemObject(d_A);
     d_A = clCreateBuffer(   ctx,
                             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            ah_round*ud_round*sizeof(float),
+                            a_num_rows_round * a_num_cols_round * sizeof(float),
                             A.data,
                             &err_num);
     if (err_num != CL_SUCCESS)
@@ -182,7 +196,7 @@ void GPUMuller::update_buffers()
         err_num = clReleaseMemObject(d_B);
     d_B = clCreateBuffer(   ctx,
                             CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            bw_round*ud_round*sizeof(float),
+                            b_num_cols_round * a_num_cols_round * sizeof(float),
                             B.data,
                             &err_num);
     if (err_num != CL_SUCCESS)
@@ -196,7 +210,7 @@ void GPUMuller::update_buffers()
     // XXX You don't need to copy C! Fix this!
     d_C = clCreateBuffer(   ctx,
                             CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
-                            ah_round*bw_round*sizeof(float),
+                            a_num_rows_round * b_num_cols_round * sizeof(float),
                             C.data,
                             &err_num);
     if (err_num != CL_SUCCESS)
@@ -226,6 +240,9 @@ void GPUMuller::multiply()
     cl_int temp_bw_round = B.num_cols;
     cl_int temp_ud = A.w;
     cl_int temp_ud_round = A.num_cols;
+    cl_int temp_a_offset = A.offset;
+    cl_int temp_b_offset = B.offset;
+    cl_int temp_c_offset = C.offset;
 
     // set kernel args
     err_num  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &d_A);
@@ -236,6 +253,9 @@ void GPUMuller::multiply()
     err_num |= clSetKernelArg(kernel, 5, sizeof(cl_int), (void *) &temp_bw_round);
     err_num |= clSetKernelArg(kernel, 6, sizeof(cl_int), (void *) &temp_bw);
     err_num |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void *) &temp_ah);
+    err_num |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void *) &temp_a_offset);
+    err_num |= clSetKernelArg(kernel, 9, sizeof(cl_int), (void *) &temp_b_offset);
+    err_num |= clSetKernelArg(kernel, 10, sizeof(cl_int), (void *) &temp_c_offset);
     if (err_num != CL_SUCCESS)
     {
         cout << "kernel arg set fail" << endl;
@@ -274,7 +294,7 @@ void GPUMuller::multiply()
                                     d_C,
                                     CL_FALSE,
                                     0,
-                                    A.num_rows*B.num_cols*sizeof(float),
+                                    A.num_rows * B.num_cols * sizeof(float),
                                     C.data,
                                     0,
                                     NULL,
@@ -291,6 +311,11 @@ void GPUMuller::multiply()
 
 float* GPUMuller::get_C(int offset, int width, int height)
 {
+
+    C.offset = offset;
+    C.w = width;
+    C.h = height;
+
     int a_o = A.offset;
     int a_w = A.w;
     int a_h = A.h;
@@ -298,6 +323,10 @@ float* GPUMuller::get_C(int offset, int width, int height)
     int b_o = B.offset;
     int b_w = B.w;
     int b_h = B.h;
+
+    cout << "Before buffer creation: " << endl;
+    print_A();
+    print_B();
 
     if (ctx == NULL)
         setup_context();
@@ -307,7 +336,17 @@ float* GPUMuller::get_C(int offset, int width, int height)
     bound_A(a_o, a_h, a_w);
     bound_B(b_o, b_h, b_w);
 
+    C.offset = offset;
+    C.w = width;
+    C.h = height;
+
+    cout << "After rebounding: " << endl;
+    print_A();
+    print_B();
+
     multiply();
+    cout << "C after multiply: " << endl;
+    print_C();
 
     return matrix_slice(C, offset, width, height);
 }

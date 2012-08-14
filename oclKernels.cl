@@ -6,8 +6,11 @@ __kernel void matMul(
                 int a_row_len,
                 int a_round_row_len,
                 int c_round_row_len,
-                int row_bound,
-                int col_bound)
+                int row_bound,  // max real length of a row in C
+                int col_bound,  // max real length of a column in C
+                int a_offset,
+                int b_offset,
+                int c_offset)
 {
     int wA = a_round_row_len;
     int wB = c_round_row_len;
@@ -17,8 +20,12 @@ __kernel void matMul(
     int by = get_group_id(1);
 
     // Thread index
-    int tx = get_local_id(0);
-    int ty = get_local_id(1);
+    int tx = get_local_id(0);   // tx == col #
+    int ty = get_local_id(1);   // ty == row #
+
+    bool in_frame = false;
+    if (tx < row_bound && ty < col_bound)
+        in_frame = true;
 
     // Index of the first sub-matrix of A processed
     // by the block
@@ -60,8 +67,17 @@ __kernel void matMul(
         // Load the matrices from global memory
         // to local memory; each thread loads
         // one element of each matrix
-        As[ty][tx] = A[a + wA * ty + tx];
-        Bs[ty][tx] = B[b + wB * ty + tx];
+        int A_index = a + wA * ty + tx;
+        if ((A_index / wA) < col_bound && (A_index % wA) < a_row_len)
+            As[ty][tx] = A[a_offset + A_index];
+        else
+            As[ty][tx] = 0.0f;
+
+        int B_index = b + wB * ty + tx;
+        if ((B_index / wB) < a_row_len && (B_index % wB) < row_bound)
+            Bs[ty][tx] = B[b_offset + B_index];
+        else
+            Bs[ty][tx] = 0.0f;
 
         // Synchronize to make sure the matrices
         // are loaded
@@ -83,5 +99,6 @@ __kernel void matMul(
     // Write the block sub-matrix to device memory;
     // each thread writes one element
     int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
-    C[c + wB * ty + tx] = Csub;
+    if (in_frame)
+        C[c_offset + c + wB * ty + tx] = Csub;
 }

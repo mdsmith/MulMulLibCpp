@@ -118,15 +118,15 @@ int test_muller(Muller* m, float* golden)
 
     // XXX offset doesn't appear to be working
     // XXX bounding doesn't appear to be working
-    m->bound_A(1, 2, 2);
-    m->bound_B(1, 2, 2);
+    m->bound_A(0, 2, 2);
+    m->bound_B(0, 2, 2);
 
     cout << "A bound in muller: ";
     m->print_A();
     cout << "B bound in muller: ";
     m->print_B();
 
-    float* mulC = m->get_C(0, 2, 2);
+    float* mulC = m->get_C(1, 2, 2);
     cout << "OCL mul1: ";
     print_mat(mulC, 2, 2);
 
