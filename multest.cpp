@@ -108,7 +108,9 @@ int test_muller(Muller* m, float* golden)
     //double elapsedTime;
 
     m->set_A(A, DIM1, DIM2);
-    m->set_B(B, DIM2, DIM1);
+    //m->set_B(B, DIM2, DIM1);
+    m->set_B(A, DIM1, DIM2);
+    m->set_C(A, DIM1, DIM2);
 
     //gettimeofday(&t1, NULL);
     cout << "A set in muller: ";
@@ -116,7 +118,7 @@ int test_muller(Muller* m, float* golden)
     cout << "B set in muller: ";
     m->print_B();
 
-    m->bound_A(1, 2, 2);
+    m->bound_A(0, 2, 2);
     m->bound_B(1, 2, 2);
 
     cout << "A bound in muller: ";

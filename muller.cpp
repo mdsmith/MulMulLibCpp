@@ -91,39 +91,48 @@ void Muller::bound_matrix(struct Matrix &m, int offset, int h, int w)
 
 void Muller::print_A()
 {
-    print_mat(A);
+    print_mat(A, A.offset, A.h, A.w);
 }
 
 void Muller::print_B()
 {
-    print_mat(B);
+    print_mat(B, B.offset, B.h, B.w);
 }
 
 void Muller::print_C()
 {
-    print_mat(C);
+    print_mat(C, C.offset, C.h, C.w);
+}
+
+void Muller::print_C(int offset, int num_rows, int num_cols)
+{
+    print_mat(C, offset, num_rows, num_cols);
 }
 
 // Print a matrix
-void Muller::print_mat(struct Matrix m)
+void Muller::print_mat( struct Matrix m,
+                        int offset,
+                        int num_rows,
+                        int num_cols
+                        )
 {
     cout << "m.h: " << m.h;
     cout << " m.w: " << m.w;
     cout << " m.offset: " << m.offset;
     cout << " m.data: " << endl;
-    int row_offset = m.offset / m.w;
-    int col_offset = m.offset % m.h;
+    int row_offset = offset / num_cols;
+    int col_offset = offset % num_rows;
     cout << "{";
-    for (int i = row_offset; i < row_offset + m.h; i++)
+    for (int i = row_offset; i < row_offset + num_rows; i++)
     {
         cout << "{";
-        for (int j = col_offset; j < col_offset + m.w; j++)
+        for (int j = col_offset; j < col_offset + num_cols; j++)
         {
-            if (j > col_offset && j < col_offset + m.w)
+            if (j > col_offset && j < col_offset + num_cols)
                 cout << ",";
             printf("%1.0f", m.data[i*m.num_cols + j]);
         }
-        if (i < row_offset + m.h-1)
+        if (i < row_offset + num_rows-1)
             cout << "},";
         else
             cout << "}";

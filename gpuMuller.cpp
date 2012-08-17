@@ -95,7 +95,8 @@ void update_B(float* B, int offset, int ud, int bw)
 
 void GPUMuller::setup_context()
 {
-    set_C(new float[A.h*B.w], A.h, B.w);
+    if (C.data == NULL)
+        set_C(new float[A.h*B.w], A.h, B.w);
 
     cl_platform_id plat = NULL;
     cl_device_id *devices = NULL;
@@ -208,9 +209,36 @@ void GPUMuller::update_buffers()
     //print_B();
     //print_C();
 
-    set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
-    set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
-    set_C(pad(C.data, C.num_rows, C.num_cols, pad_to), a_num_rows_round, b_num_cols_round);
+    if (A.data == B.data && A.data == C.data)
+    {
+        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
+        set_B(A.data, a_num_rows_round, a_num_cols_round);
+        set_C(A.data, a_num_rows_round, a_num_cols_round);
+    }
+    else if (A.data == B.data)
+    {
+        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
+        set_B(A.data, a_num_rows_round, a_num_cols_round);
+        set_C(pad(C.data, C.num_rows, C.num_cols, pad_to), a_num_rows_round, b_num_cols_round);
+    }
+    else if (B.data == C.data)
+    {
+        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
+        set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
+        set_C(B.data, a_num_cols_round, b_num_cols_round);
+    }
+    else if (A.data == C.data)
+    {
+        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
+        set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
+        set_C(A.data, a_num_rows_round, a_num_cols_round);
+    }
+    else
+    {
+        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
+        set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
+        set_C(pad(C.data, C.num_rows, C.num_cols, pad_to), a_num_rows_round, b_num_cols_round);
+    }
 
     //cout << "Post padding: " << endl;
     //print_A();
@@ -238,26 +266,35 @@ void GPUMuller::update_buffers()
 
     if (d_B != NULL)
         err_num = clReleaseMemObject(d_B);
-    d_B = clCreateBuffer(   ctx,
-                            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            b_num_cols_round * a_num_cols_round * sizeof(float),
-                            B.data,
-                            &err_num);
+    else if (A.data == B.data)
+        d_B = d_A;
+    else
+        d_B = clCreateBuffer(   ctx,
+                                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                b_num_cols_round * a_num_cols_round * sizeof(float),
+                                B.data,
+                                &err_num);
     if (err_num != CL_SUCCESS)
     {
         cout << "make buffer fail" << endl;
         exit(err_num);
     }
 
+    // XXX There is a set C, right? And if that is the case it wont make a new C?
     if (d_C != NULL)
         err_num = clReleaseMemObject(d_C);
-    d_C = clCreateBuffer(   ctx,
-                            //CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
-                            CL_MEM_READ_WRITE,
-                            a_num_rows_round * b_num_cols_round * sizeof(float),
-                            //C.data,
-                            NULL,
-                            &err_num);
+    else if (A.data == C.data)
+        d_C = d_A;
+    else if (B.data == C.data)
+        d_C = d_B;
+    else
+        d_C = clCreateBuffer(   ctx,
+                                //CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
+                                CL_MEM_READ_WRITE,
+                                a_num_rows_round * b_num_cols_round * sizeof(float),
+                                //C.data,
+                                NULL,
+                                &err_num);
     if (err_num != CL_SUCCESS)
     {
         cout << "make buffer fail" << endl;
@@ -399,8 +436,8 @@ float* GPUMuller::get_C(int offset, int width, int height)
     //print_B();
 
     multiply();
-    //cout << "C after multiply: " << endl;
-    //print_C();
+    cout << "C after multiply: " << endl;
+    print_C(0, C.num_rows, C.num_cols);
 
     return matrix_slice(C, offset, width, height);
 }

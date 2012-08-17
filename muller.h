@@ -15,7 +15,7 @@ protected:
     void update_matrix(struct Matrix &m, float* data, int offset, int h, int w);
     void set_matrix(struct Matrix &m, float* data, int num_rows, int num_cols);
     void bound_matrix(struct Matrix &m, int offset, int h, int w);
-    void print_mat(struct Matrix m);
+    void print_mat(struct Matrix m, int offset, int num_rows, int num_cols);
     virtual void multiply() =0;
 public:
     virtual const char* get_name();
@@ -29,6 +29,7 @@ public:
     void print_A();
     void print_B();
     void print_C();
+    void print_C(int offset, int num_rows, int num_cols);
     virtual float* get_C(int offset, int width, int height) =0;
     virtual void test() =0;
 };
