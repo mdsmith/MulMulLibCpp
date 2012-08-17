@@ -300,17 +300,6 @@ void GPUMuller::update_buffers()
 }
 
 
-// XXX what if the buffer needs to get bigger... I need to make a new buffer
-//void GPUMuller::update_buffers()
-//{
-    // XXX when arrays are updated, we also need to update the buffers on the
-    // device
-
-    // XXX update Global and local work sizes
-    // XXX update padding
-    // XXX update buffers on device
-//}
-
 void GPUMuller::check_buffers()
 {
     if (!cleanBuff)

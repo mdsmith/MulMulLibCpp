@@ -13,6 +13,7 @@
 #endif
 
 #include <iostream>
+#include <stdio.h>
 #include "naiveFunctions.h"
 #include "muller.h"
 #include <cstdlib>
