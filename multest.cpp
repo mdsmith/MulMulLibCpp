@@ -130,6 +130,19 @@ int test_muller(Muller* m, float* golden)
     cout << "OCL mul1: ";
     print_mat(mulC, 2, 2);
 
+    cout << "A before update: ";
+    m->print_A(0, DIM1, DIM2);
+
+    m->update_A(A, 0, 2, 2, DIM1, DIM2);
+
+    cout << "A after update: ";
+    m->print_A(0, DIM1, DIM2);
+
+    mulC = m->get_C(1, 2, 2);
+    cout << "OCL mul2: ";
+    print_mat(mulC, 2, 2);
+
+
 /*
 //  Simple Multiply:
     float* mulC = m->get_C(0, DIM1, DIM1);

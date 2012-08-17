@@ -54,44 +54,41 @@ const char* GPUMuller::get_name()
 }
 
 
-/*
-void set_A(float* A, int num_rows, int num_cols)
+void GPUMuller::set_A(float* A, int num_rows, int num_cols)
 {
     if (ctx != NULL)
         cleanBuff = false;
-    Muller::set_A(float* A, int num_rows, int num_cols);
+    Muller::set_A(A, num_rows, num_cols);
 }
 
-void set_B(float* B, int num_rows, int num_cols)
+void GPUMuller::set_B(float* B, int num_rows, int num_cols)
 {
     if (ctx != NULL)
         cleanBuff = false;
-    Muller::set_B(float* B, int num_rows, int num_cols)
+    Muller::set_B(B, num_rows, num_cols);
 }
 
-void set_C(float* C, int num_rows, int num_cols)
+void GPUMuller::set_C(float* C, int num_rows, int num_cols)
 {
     if (ctx != NULL)
         cleanBuff = false;
-    Muller::set_C(float* C, int num_rows, int num_cols)
+    Muller::set_C(C, num_rows, num_cols);
 }
 
-void update_A(float* A, int offset, int ah, int ud)
+void GPUMuller::update_A(float* A, int offset, int ah, int ud, int num_rows, int num_cols)
 {
-    Muller::update_A(float* A, int offset, int ah, int ud)
+    Muller::update_A(A, offset, ah, ud, num_rows, num_cols);
     if (ctx != NULL)
         a_dirt = true;
 }
 
-void update_B(float* B, int offset, int ud, int bw)
+void GPUMuller::update_B(float* B, int offset, int ud, int bw, int num_rows, int num_cols)
 {
-    Muller::update_B(float* B, int offset, int ud, int bw)
+    Muller::update_B(B, offset, ud, bw, num_rows, num_cols);
     if (ctx != NULL)
         b_dirt = true;
 }
-*/
 
-// XXX so how do you propose doign this when A B and C are the same buffer?
 
 void GPUMuller::setup_context()
 {
@@ -280,7 +277,6 @@ void GPUMuller::update_buffers()
         exit(err_num);
     }
 
-    // XXX There is a set C, right? And if that is the case it wont make a new C?
     if (d_C != NULL)
         err_num = clReleaseMemObject(d_C);
     else if (A.data == C.data)
@@ -319,8 +315,46 @@ void GPUMuller::check_buffers()
 {
     if (!cleanBuff)
         update_buffers();
-    //if (rewriteBuff)
-        //rewrite_buffers();
+
+    if (a_dirt)
+        err_num = clEnqueueWriteBuffer( queue,
+                                        d_A,
+                                        CL_FALSE,
+                                        0,
+                                        sizeof(cl_float)*A.num_rows*A.num_cols,
+                                        A.data,
+                                        0,
+                                        NULL,
+                                        NULL
+                                        );
+    if (b_dirt)
+        err_num |= clEnqueueWriteBuffer( queue,
+                                        d_B,
+                                        CL_FALSE,
+                                        0,
+                                        sizeof(cl_float)*B.num_rows*B.num_cols,
+                                        B.data,
+                                        0,
+                                        NULL,
+                                        NULL
+                                        );
+    if (c_dirt)
+        err_num |= clEnqueueWriteBuffer( queue,
+                                        d_C,
+                                        CL_FALSE,
+                                        0,
+                                        sizeof(cl_float)*C.num_rows*C.num_cols,
+                                        C.data,
+                                        0,
+                                        NULL,
+                                        NULL
+                                        );
+    if (err_num != CL_SUCCESS)
+    {
+        cout << "Error rewritting buffers" << endl;
+        exit(err_num);
+    }
+
 }
 
 

@@ -12,7 +12,7 @@ protected:
     struct Matrix A;
     struct Matrix B;
     struct Matrix C;
-    void update_matrix(struct Matrix &m, float* data, int offset, int h, int w);
+    void update_matrix(struct Matrix &m, float* data, int offset, int h, int w, int num_rows, int num_cols);
     void set_matrix(struct Matrix &m, float* data, int num_rows, int num_cols);
     void bound_matrix(struct Matrix &m, int offset, int h, int w);
     void print_mat(struct Matrix m, int offset, int num_rows, int num_cols);
@@ -23,11 +23,15 @@ public:
     virtual void set_B(float* B, int num_rows, int num_cols);
     virtual void set_C(float* C, int num_rows, int num_cols);
     virtual void update_A(float* A, int offset, int ah, int ud);
+    virtual void update_A(float* A, int offset, int ah, int ud, int num_rows, int num_cols);
     virtual void update_B(float* B, int offset, int ud, int bw);
+    virtual void update_B(float* B, int offset, int ud, int bw, int num_rows, int num_cols);
     void bound_A(int offset, int ah, int ud);
     void bound_B(int offset, int ud, int bw);
     void print_A();
+    void print_A(int offset, int num_rows, int num_cols);
     void print_B();
+    void print_B(int offset, int num_rows, int num_cols);
     void print_C();
     void print_C(int offset, int num_rows, int num_cols);
     virtual float* get_C(int offset, int width, int height) =0;

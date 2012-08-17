@@ -14,7 +14,18 @@ const char* Muller::get_name()
 
 void Muller::update_A(float* A, int offset, int ah, int ud)
 {
-    update_matrix(this->A, A, offset, ah, ud);
+    update_matrix(this->A, A, offset, ah, ud, ah, ud);
+}
+
+void Muller::update_A(  float* A,
+                        int offset,
+                        int ah,
+                        int ud,
+                        int num_rows,
+                        int num_cols
+                        )
+{
+    update_matrix(this->A, A, offset, ah, ud, num_rows, num_cols);
 }
 
 
@@ -30,9 +41,24 @@ void Muller::bound_A(int offset, int ah, int ud)
 }
 
 
-void Muller::update_B(float* B, int offset, int ud, int bw)
+void Muller::update_B(  float* B,
+                        int offset,
+                        int ud,
+                        int bw
+                        )
 {
-    update_matrix(this->B, B, offset, ud, bw);
+    update_matrix(this->B, B, offset, ud, bw, ud, bw);
+}
+
+void Muller::update_B(  float* B,
+                        int offset,
+                        int ud,
+                        int bw,
+                        int num_rows,
+                        int num_cols
+                        )
+{
+    update_matrix(this->B, B, offset, ud, bw, num_rows, num_cols);
 }
 
 
@@ -55,7 +81,14 @@ void Muller::set_C(float* C, int num_rows, int num_cols)
 
 
 // Update a subset of a matrix
-void Muller::update_matrix(struct Matrix &m, float* data, int offset, int h, int w)
+void Muller::update_matrix( struct Matrix &m,
+                            float* data,
+                            int offset,
+                            int h,
+                            int w,
+                            int num_rows,
+                            int num_cols
+                            )
 {
     float* start = m.data + offset;
     int sr = offset / m.num_cols;
@@ -63,7 +96,7 @@ void Muller::update_matrix(struct Matrix &m, float* data, int offset, int h, int
     for (int r = sr; r < sr+h; r++)
         for (int c = sc; c < sc+w; c++)
             if (r < m.num_rows && c < m.num_cols)
-                start[r*m.num_cols + c] = data[r*w + h];
+                start[r*m.num_cols + c] = data[r*num_cols + c];
 }
 
 
@@ -94,9 +127,19 @@ void Muller::print_A()
     print_mat(A, A.offset, A.h, A.w);
 }
 
+void Muller::print_A(int offset, int num_rows, int num_cols)
+{
+    print_mat(A, offset, num_rows, num_cols);
+}
+
 void Muller::print_B()
 {
     print_mat(B, B.offset, B.h, B.w);
+}
+
+void Muller::print_B(int offset, int num_rows, int num_cols)
+{
+    print_mat(B, offset, num_rows, num_cols);
 }
 
 void Muller::print_C()
