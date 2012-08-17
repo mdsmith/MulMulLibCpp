@@ -19,13 +19,13 @@ protected:
     virtual void multiply() =0;
 public:
     virtual const char* get_name();
-    void update_A(float* A, int offset, int ah, int ud);
-    void set_A(float* A, int num_rows, int num_cols);
+    virtual void set_A(float* A, int num_rows, int num_cols);
+    virtual void set_B(float* B, int num_rows, int num_cols);
+    virtual void set_C(float* C, int num_rows, int num_cols);
+    virtual void update_A(float* A, int offset, int ah, int ud);
+    virtual void update_B(float* B, int offset, int ud, int bw);
     void bound_A(int offset, int ah, int ud);
-    void update_B(float* B, int offset, int ud, int bw);
-    void set_B(float* B, int num_rows, int num_cols);
     void bound_B(int offset, int ud, int bw);
-    void set_C(float* C, int num_rows, int num_cols);
     void print_A();
     void print_B();
     void print_C();

@@ -10,6 +10,12 @@ private:
 public:
     GPUMuller();
     const char* get_name();
+    //void set_A(float* A, int num_rows, int num_cols);
+    //void set_B(float* B, int num_rows, int num_cols);
+    //void set_C(float* C, int num_rows, int num_cols);
+    //void update_A(float* A, int offset, int ah, int ud);
+    //void update_B(float* B, int offset, int ud, int bw);
+    void check_buffers();
     float* get_C(int offset, int width, int height);
     void test();
     ~GPUMuller();
