@@ -497,6 +497,8 @@ void GPUMuller::multiply()
     cout << ", " << global_work_size[1] << endl;
     cout << "Local work size: " << local_work_size[0];
     cout << ", " << local_work_size[1] << endl;
+    // XXX will the kernel scale in both directions and for both positive and
+    // negative values?
     err_num = clEnqueueNDRangeKernel(   queue,
                                         kernel,
                                         2,
