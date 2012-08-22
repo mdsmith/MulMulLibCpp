@@ -1,0 +1,46 @@
+MulMulLibCpp - MULtiple MULtiplication LIBrary in C++ for matrices
+
+I've developed this library to make instances of multiple matrix
+multiplication simple and OpenCL accelerated. While this is trivial in
+something like R or numpy, or even naively in C++, this library allows for
+library calls instead of in place code. It also ensures that memory mangling
+is kept to a minimum, and that you can use optimized versions of matrix
+multiply, as available.
+
+Compile:
+make <option>
+
+Options:
+- ocl - OpenCL accelerated backend (works great)
+- mul - naive C++ backend (limited functionality, slow)
+- omp - OpenMP accelerated backend (limited functionality)
+- fma - FMA4 instruction optimized omp backend for newer AMD CPUs (limited
+  functionality)
+- opt - same settings as fma but without the fma4 compiler flags (limited
+  functionality)
+- arma - armadillo accellerated backend (TODO)
+
+Usage:
+- set_A(float* data, ...)
+- set_B(float* data, ...)
+- get_C(...)
+
+Advanced options:
+- update_<mat>(float* data, int subsection_location, ...)
+- bound_<mat>(int bound_location, ...)
+
+Progress:
+- The base of the library is complete.
+- Scaling is nearly complete, at least for the OpenCL library
+- Todo's are marked with XXX in the code.
+- Features are supported by some backends and not others. So far the most
+  feature complete backend is the OpenCL library.
+  - Matrices can be assigned to A and B (and if you want C)
+  - The same memory can be used to store more than one of these (without
+    memory duplication on the host or device)
+  - You can bound the multiplication to subsections of any matrix
+  - You can update any part of any matrix
+  - you can select where in C the result is stored
+  - multiplication is performed in a lazy fasion (not until you call get_C())
+  - Scaling is performed on the GPU and the result is placed directly into
+    matrix object(s).
