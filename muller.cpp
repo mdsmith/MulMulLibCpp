@@ -1,6 +1,6 @@
 // Author: Martin Smith martin.audacis@gmail.com
 // Created: 8/5/12
-// Last Edited On: 8/5/12
+// Last Edited On: 8/20/12
 
 #include "muller.h"
 #include <cstddef>
@@ -82,7 +82,7 @@ void Muller::set_C(float* C, int num_rows, int num_cols)
 
 
 // Update a subset of a matrix
-void Muller::update_matrix( struct Matrix &m,
+void Muller::update_matrix( Matrix &m,
                             float* data,
                             int offset,
                             int h,
@@ -91,6 +91,8 @@ void Muller::update_matrix( struct Matrix &m,
                             int num_cols
                             )
 {
+    m.update_data(data, offset, h, w, num_rows, num_cols);
+    /*
     float* start = m.data + offset;
     int sr = offset / m.num_cols;
     int sc = offset % m.num_cols;
@@ -98,68 +100,80 @@ void Muller::update_matrix( struct Matrix &m,
         for (int c = sc; c < sc+w; c++)
             if (r < m.num_rows && c < m.num_cols)
                 start[r*m.num_cols + c] = data[r*num_cols + c];
+    */
 }
 
 
 // Set an entirely new matrix
-void Muller::set_matrix(struct Matrix &m, float* data, int num_rows, int num_cols)
+void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
 {
-    // XXX old data here could be a memory leak
+    m.set_data(data, 0, num_rows, num_cols, num_rows, num_cols);
+    cout << "done setting data in Muller!" << endl;
+    /*
     m.data = data;
     m.offset = 0;
     m.h = num_rows;
     m.w = num_cols;
     m.num_rows = num_rows;
     m.num_cols = num_cols;
+    m.scal_thresh = 1e-10;
+    m.scalar = 10;
     m.set = true;
+    */
 }
 
 
 // Set a new block up for multiplication
-void Muller::bound_matrix(struct Matrix &m, int offset, int h, int w)
+void Muller::bound_matrix(Matrix &m, int offset, int h, int w)
 {
+    m.bound_data(offset, h, w);
+/*
     m.offset = offset;
     m.h = h;
     m.w = w;
+*/
 }
 
 void Muller::print_A()
 {
-    print_mat(A, A.offset, A.h, A.w);
+    A.print_mat(A.get_offset(), A.get_bound_rows(), A.get_bound_cols());
 }
 
 void Muller::print_A(int offset, int num_rows, int num_cols)
 {
-    print_mat(A, offset, num_rows, num_cols);
+    A.print_mat(offset, num_rows, num_cols);
 }
 
 void Muller::print_B()
 {
-    print_mat(B, B.offset, B.h, B.w);
+    B.print_mat(B.get_offset(), B.get_bound_rows(), B.get_bound_cols());
 }
 
 void Muller::print_B(int offset, int num_rows, int num_cols)
 {
-    print_mat(B, offset, num_rows, num_cols);
+    B.print_mat(offset, num_rows, num_cols);
 }
 
 void Muller::print_C()
 {
-    print_mat(C, C.offset, C.h, C.w);
+    C.print_mat(C.get_offset(), C.get_bound_rows(), C.get_bound_cols());
 }
 
 void Muller::print_C(int offset, int num_rows, int num_cols)
 {
-    print_mat(C, offset, num_rows, num_cols);
+    C.print_mat(offset, num_rows, num_cols);
 }
 
+
 // Print a matrix
-void Muller::print_mat( struct Matrix m,
+void Muller::print_mat( Matrix m,
                         int offset,
                         int num_rows,
                         int num_cols
                         )
 {
+    m.print_mat(offset, num_rows, num_cols);
+    /*
     cout << "m.h: " << m.h;
     cout << " m.w: " << m.w;
     cout << " m.offset: " << m.offset;
@@ -182,7 +196,51 @@ void Muller::print_mat( struct Matrix m,
             cout << "}";
     }
     cout << "}" << endl;
+    */
 
 }
 
+// XXX Matrix should eventually be a class and this should eventually
+// be a method
+// XXX along with this method there should be a method to return a
+// matrix that has been descaled, as well as one to return a descaled
+// matrix of doubles
+/*
+void Muller::update_scale_m(struct Matrix &m)
+{
+    if (m.scalings == NULL)
+    {
+        m.scalings = new int[m.num_rows * m.num_cols];
+        for (int i = 0; i < m.num_rows*m.num_cols; i++)
+            m.scalings[i] = 0;
+    }
+    for (int i = 0; i < m.num_rows*m.num_cols; i++)
+    {
+        while (m.data[i] < m.scal_thresh)
+        {
+            m.data[i] *= m.scalar;
+            m.scalings[i]++;
+        }
+    }
+}
+*/
 
+/*
+void Muller::update_scales()
+{
+    if (A.data != NULL)
+        update_scale_m(A);
+    if (B.data != NULL)
+        update_scale_m(B);
+    if (C.data != NULL)
+        update_scale_m(C);
+}
+*/
+
+/*
+void Muller::update_scales(struct Matrix &m, float* data, int* scalings)
+{
+    m.data = data;
+    m.scalings = scalings;
+}
+*/

@@ -1,7 +1,7 @@
 // Author: Martin Smith
 // Project: Flexible MULtiple MULtiplicaiton LIBrary in C Plus Plus.
 // Created: Early August 2012
-// Last Edited: 8/5/2012
+// Last Edited: 8/20/2012
 //
 // XXX Implement scaling
 
@@ -19,6 +19,8 @@
 using namespace std;
 
 #define BLOCK_SIZE 16
+#define PAD_SIZE 64
+#define SCALAR 100
 
 bool cleanBuff;
 bool a_dirt;
@@ -32,15 +34,18 @@ size_t local_work_size[2];
 cl_int err_num;
 
 cl_mem d_A;
+cl_mem d_As;
 cl_mem d_B;
+cl_mem d_Bs;
 cl_mem d_C;
+cl_mem d_Cs;
 
 GPUMuller::GPUMuller()
 {
     //cout << "naiveMuller constructed" << endl;
-    A.set = false;
-    B.set = false;
-    C.set = false;
+    //A = new Matrix();
+    //B = new Matrix();
+    //C = new Matrix();
     cleanBuff = false;
     a_dirt = false;
     b_dirt = false;
@@ -89,11 +94,24 @@ void GPUMuller::update_B(float* B, int offset, int ud, int bw, int num_rows, int
         b_dirt = true;
 }
 
+void GPUMuller::bound_A(int offset, int ah, int ud)
+{
+    Muller::bound_A(offset, ah, ud);
+}
+
+void GPUMuller::bound_B(int offset, int ud, int bw)
+{
+    Muller::bound_B(offset, ud, bw);
+}
+
 
 void GPUMuller::setup_context()
 {
-    if (C.data == NULL)
-        set_C(new float[A.h*B.w], A.h, B.w);
+    if (!C.is_set())
+        set_C(  new float[A.get_bound_rows()*B.get_bound_cols()],
+                A.get_bound_rows(),
+                B.get_bound_cols()
+                );
 
     cl_platform_id plat = NULL;
     cl_device_id *devices = NULL;
@@ -155,7 +173,6 @@ void GPUMuller::setup_context()
         exit(err_num);
     }
 
-
     // prog setup
     const char* source = load_program_source("oclKernels.cl");
     cl_program prog = clCreateProgramWithSource(ctx, 1, &source, NULL, &err_num);
@@ -181,79 +198,93 @@ void GPUMuller::setup_context()
         exit(err_num);
     }
 
+    A.update_scalings();
+    B.update_scalings();
+    C.update_scalings();
     update_buffers();
 }
 
 void GPUMuller::update_buffers()
 {
     // array rounding
-    int pad_to = 64;
-
-    int b_num_cols_round = round_up(B.num_cols, pad_to);
-    int a_num_cols_round = round_up(A.num_cols, pad_to);
-    int a_num_rows_round = round_up(A.num_rows, pad_to);
-
-    int bw_round = round_up(B.w, pad_to);
-    int ud_round = round_up(A.w, pad_to);
-    int ah_round = round_up(A.h, pad_to);
-
-    int a_h_bound = A.h;
-    int a_w_bound = A.w;
-    int b_w_bound = B.w;
-
-    //cout << "Pre padding: " << endl;
-    //print_A();
-    //print_B();
-    //print_C();
-
-    if (A.data == B.data && A.data == C.data)
+    if (A.get_scaled() == B.get_scaled() && A.get_scaled() == C.get_scaled())
     {
-        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
-        set_B(A.data, a_num_rows_round, a_num_cols_round);
-        set_C(A.data, a_num_rows_round, a_num_cols_round);
+        A.pad_to(PAD_SIZE);
+        B.set_data_and_scalings(A.get_scaled(),
+                                A.get_scalings(),
+                                A.get_total_rows(),
+                                A.get_total_cols());
+        C.set_data_and_scalings(A.get_scaled(),
+                                A.get_scalings(),
+                                A.get_total_rows(),
+                                A.get_total_cols());
     }
-    else if (A.data == B.data)
+    else if (B.get_scaled() == A.get_scaled())
     {
-        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
-        set_B(A.data, a_num_rows_round, a_num_cols_round);
-        set_C(pad(C.data, C.num_rows, C.num_cols, pad_to), a_num_rows_round, b_num_cols_round);
+        A.pad_to(PAD_SIZE);
+        B.set_data_and_scalings(A.get_scaled(),
+                                A.get_scalings(),
+                                A.get_total_rows(),
+                                A.get_total_cols());
+        C.pad_to(PAD_SIZE);
     }
-    else if (B.data == C.data)
+    else if (C.get_scaled() == B.get_scaled())
     {
-        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
-        set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
-        set_C(B.data, a_num_cols_round, b_num_cols_round);
+        A.pad_to(PAD_SIZE);
+        B.pad_to(PAD_SIZE);
+        C.set_data_and_scalings(B.get_scaled(),
+                                B.get_scalings(),
+                                B.get_total_rows(),
+                                B.get_total_cols());
     }
-    else if (A.data == C.data)
+    else if (C.get_scaled() == A.get_scaled())
     {
-        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
-        set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
-        set_C(A.data, a_num_rows_round, a_num_cols_round);
+        A.pad_to(PAD_SIZE);
+        B.pad_to(PAD_SIZE);
+        C.set_data_and_scalings(A.get_scaled(),
+                                A.get_scalings(),
+                                A.get_total_rows(),
+                                A.get_total_cols());
     }
     else
     {
-        set_A(pad(A.data, A.num_rows, A.num_cols, pad_to), a_num_rows_round, a_num_cols_round);
-        set_B(pad(B.data, B.num_rows, B.num_cols, pad_to), a_num_cols_round, b_num_cols_round);
-        set_C(pad(C.data, C.num_rows, C.num_cols, pad_to), a_num_rows_round, b_num_cols_round);
+        A.pad_to(PAD_SIZE);
+        B.pad_to(PAD_SIZE);
+        C.pad_to(PAD_SIZE);
     }
 
-    //cout << "Post padding: " << endl;
-    //print_A();
-    //print_B();
-    //print_C();
+/*
+    cout << "Post padding: " << endl;
+    print_A();
+    print_B();
+    print_C();
+*/
 
     // work dim setup
-    global_work_size[0] = ah_round;
-    global_work_size[1] = bw_round;
+    global_work_size[0] = round_up(A.get_bound_rows(),PAD_SIZE);
+    global_work_size[1] = round_up(B.get_bound_cols(),PAD_SIZE);
     local_work_size[0] = BLOCK_SIZE;
     local_work_size[1] = BLOCK_SIZE;
 
     if (d_A != NULL)
+    {
         err_num = clReleaseMemObject(d_A);
+        err_num |= clReleaseMemObject(d_As);
+    }
+    if (err_num != CL_SUCCESS)
+    {
+        cout << "release buffer fail" << endl;
+        exit(err_num);
+    }
     d_A = clCreateBuffer(   ctx,
-                            CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                            a_num_rows_round * a_num_cols_round * sizeof(float),
-                            A.data,
+                            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                            A.get_total_rows() * A.get_total_cols() * sizeof(float),
+                            A.get_scaled(),
+                            &err_num);
+    d_As = clCreateBuffer(   ctx,
+                            CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                            A.get_total_rows() * A.get_total_cols() * sizeof(int),
+                            A.get_scalings(),
                             &err_num);
     if (err_num != CL_SUCCESS)
     {
@@ -262,15 +293,35 @@ void GPUMuller::update_buffers()
     }
 
     if (d_B != NULL)
+    {
         err_num = clReleaseMemObject(d_B);
-    else if (A.data == B.data)
+        err_num |= clReleaseMemObject(d_Bs);
+        if (err_num != CL_SUCCESS)
+        {
+            cout << "release buffer fail" << endl;
+            exit(err_num);
+        }
+    }
+    if (B.get_scaled() == A.get_scaled())
+    {
         d_B = d_A;
+        d_Bs = d_As;
+    }
     else
+    {
         d_B = clCreateBuffer(   ctx,
-                                CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-                                b_num_cols_round * a_num_cols_round * sizeof(float),
-                                B.data,
+                                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                B.get_total_rows() * B.get_total_cols() *
+                                sizeof(float),
+                                B.get_scaled(),
                                 &err_num);
+        d_Bs = clCreateBuffer(  ctx,
+                                CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
+                                B.get_total_rows() * B.get_total_cols() *
+                                sizeof(int),
+                                B.get_scalings(),
+                                &err_num);
+    }
     if (err_num != CL_SUCCESS)
     {
         cout << "make buffer fail" << endl;
@@ -278,19 +329,40 @@ void GPUMuller::update_buffers()
     }
 
     if (d_C != NULL)
+    {
         err_num = clReleaseMemObject(d_C);
-    else if (A.data == C.data)
+        err_num |= clReleaseMemObject(d_Cs);
+        if (err_num != CL_SUCCESS)
+        {
+            cout << "release buffer fail" << endl;
+            exit(err_num);
+        }
+    }
+    if (C.get_scaled() == A.get_scaled())
+    {
         d_C = d_A;
-    else if (B.data == C.data)
+        d_Cs = d_As;
+    }
+    else if (C.get_scaled() == B.get_scaled())
+    {
         d_C = d_B;
+        d_Cs = d_Bs;
+    }
     else
+    {
         d_C = clCreateBuffer(   ctx,
-                                //CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR,
                                 CL_MEM_READ_WRITE,
-                                a_num_rows_round * b_num_cols_round * sizeof(float),
-                                //C.data,
+                                A.get_total_rows() * B.get_total_cols() *
+                                sizeof(float),
                                 NULL,
                                 &err_num);
+        d_C = clCreateBuffer(   ctx,
+                                CL_MEM_READ_WRITE,
+                                A.get_total_rows() * B.get_total_cols() *
+                                sizeof(int),
+                                NULL,
+                                &err_num);
+    }
     if (err_num != CL_SUCCESS)
     {
         cout << "make buffer fail" << endl;
@@ -300,76 +372,116 @@ void GPUMuller::update_buffers()
 }
 
 
+// XXX updating buffers only works if you're replacing the whole buffer
+// (nothing on the GPU will be written back before being overwritten)
 void GPUMuller::check_buffers()
 {
     if (!cleanBuff)
         update_buffers();
 
     if (a_dirt)
+    {
         err_num = clEnqueueWriteBuffer( queue,
                                         d_A,
                                         CL_FALSE,
                                         0,
-                                        sizeof(cl_float)*A.num_rows*A.num_cols,
-                                        A.data,
+                                        sizeof(cl_float)*A.get_total_rows()*A.get_total_cols(),
+                                        A.get_scaled(),
                                         0,
                                         NULL,
                                         NULL
                                         );
+        err_num = clEnqueueWriteBuffer( queue,
+                                        d_As,
+                                        CL_FALSE,
+                                        0,
+                                        sizeof(int)*A.get_total_rows()*A.get_total_cols(),
+                                        A.get_scalings(),
+                                        0,
+                                        NULL,
+                                        NULL
+                                        );
+    }
     if (b_dirt)
+    {
         err_num |= clEnqueueWriteBuffer( queue,
                                         d_B,
                                         CL_FALSE,
                                         0,
-                                        sizeof(cl_float)*B.num_rows*B.num_cols,
-                                        B.data,
+                                        sizeof(cl_float)*B.get_total_rows()*B.get_total_cols(),
+                                        B.get_scaled(),
                                         0,
                                         NULL,
                                         NULL
                                         );
+        err_num |= clEnqueueWriteBuffer( queue,
+                                        d_Bs,
+                                        CL_FALSE,
+                                        0,
+                                        sizeof(int)*B.get_total_rows()*B.get_total_cols(),
+                                        B.get_scalings(),
+                                        0,
+                                        NULL,
+                                        NULL
+                                        );
+    }
     if (c_dirt)
+    {
         err_num |= clEnqueueWriteBuffer( queue,
                                         d_C,
                                         CL_FALSE,
                                         0,
-                                        sizeof(cl_float)*C.num_rows*C.num_cols,
-                                        C.data,
+                                        sizeof(cl_float)*C.get_total_rows()*C.get_total_cols(),
+                                        C.get_scaled(),
                                         0,
                                         NULL,
                                         NULL
                                         );
+        err_num |= clEnqueueWriteBuffer( queue,
+                                        d_Cs,
+                                        CL_FALSE,
+                                        0,
+                                        sizeof(int)*C.get_total_rows()*C.get_total_cols(),
+                                        C.get_scalings(),
+                                        0,
+                                        NULL,
+                                        NULL
+                                        );
+    }
     if (err_num != CL_SUCCESS)
     {
         cout << "Error rewritting buffers" << endl;
         exit(err_num);
     }
-
 }
 
 
 void GPUMuller::multiply()
 {
-    cl_int temp_ah = A.h;
-    cl_int temp_bw = B.w;
-    cl_int temp_bw_round = B.num_cols;
-    cl_int temp_ud = A.w;
-    cl_int temp_ud_round = A.num_cols;
-    cl_int temp_a_offset = A.offset;
-    cl_int temp_b_offset = B.offset;
-    cl_int temp_c_offset = C.offset;
+    cl_int temp_ah = A.get_bound_rows();
+    cl_int temp_bw = B.get_bound_cols();
+    cl_int temp_bw_round = B.get_total_cols();
+    cl_int temp_ud = A.get_bound_cols();
+    cl_int temp_ud_round = A.get_total_cols();
+    cl_int temp_a_offset = A.get_offset();
+    cl_int temp_b_offset = B.get_offset();
+    cl_int temp_c_offset = C.get_offset();
 
     // set kernel args
     err_num  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &d_A);
-    err_num |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *) &d_B);
-    err_num |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *) &d_C);
-    err_num |= clSetKernelArg(kernel, 3, sizeof(cl_int), (void *) &temp_ud);
-    err_num |= clSetKernelArg(kernel, 4, sizeof(cl_int), (void *) &temp_ud_round);
-    err_num |= clSetKernelArg(kernel, 5, sizeof(cl_int), (void *) &temp_bw_round);
-    err_num |= clSetKernelArg(kernel, 6, sizeof(cl_int), (void *) &temp_bw);
-    err_num |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void *) &temp_ah);
-    err_num |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void *) &temp_a_offset);
-    err_num |= clSetKernelArg(kernel, 9, sizeof(cl_int), (void *) &temp_b_offset);
-    err_num |= clSetKernelArg(kernel, 10, sizeof(cl_int), (void *) &temp_c_offset);
+    err_num |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *) &d_As);
+    err_num |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *) &d_B);
+    err_num |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *) &d_Bs);
+    err_num |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void *) &d_C);
+    err_num |= clSetKernelArg(kernel, 5, sizeof(cl_mem), (void *) &d_Cs);
+    err_num |= clSetKernelArg(kernel, 6, sizeof(cl_int), (void *) &temp_ud);
+    err_num |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void *) &temp_ud_round);
+    err_num |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void *) &temp_bw_round);
+    err_num |= clSetKernelArg(kernel, 9, sizeof(cl_int), (void *) &temp_bw);
+    err_num |= clSetKernelArg(kernel, 10, sizeof(cl_int), (void *) &temp_ah);
+    err_num |= clSetKernelArg(kernel, 11, sizeof(cl_int), (void *) &temp_a_offset);
+    err_num |= clSetKernelArg(kernel, 12, sizeof(cl_int), (void *) &temp_b_offset);
+    err_num |= clSetKernelArg(kernel, 13, sizeof(cl_int), (void *) &temp_c_offset);
     if (err_num != CL_SUCCESS)
     {
         cout << "kernel arg set fail" << endl;
@@ -381,6 +493,10 @@ void GPUMuller::multiply()
     double elapsedTime;
     gettimeofday(&t1, NULL);
 
+    cout << "Global work size: " << global_work_size[0];
+    cout << ", " << global_work_size[1] << endl;
+    cout << "Local work size: " << local_work_size[0];
+    cout << ", " << local_work_size[1] << endl;
     err_num = clEnqueueNDRangeKernel(   queue,
                                         kernel,
                                         2,
@@ -408,8 +524,18 @@ void GPUMuller::multiply()
                                     d_C,
                                     CL_FALSE,
                                     0,
-                                    A.num_rows * B.num_cols * sizeof(float),
-                                    C.data,
+                                    C.get_total_rows() * C.get_total_cols()* sizeof(float),
+                                    C.get_scaled(),
+                                    0,
+                                    NULL,
+                                    NULL);
+    err_num = clEnqueueReadBuffer(  queue,
+                                    d_Cs,
+                                    CL_FALSE,
+                                    0,
+                                    C.get_total_rows() * C.get_total_cols()*
+                                    sizeof(int),
+                                    C.get_scalings(),
                                     0,
                                     NULL,
                                     NULL);
@@ -419,17 +545,19 @@ void GPUMuller::multiply()
         exit(err_num);
     }
     clFinish(queue);
-    C.set = true;
+    C.set_set(true);
 }
 
 
 float* GPUMuller::get_C(int offset, int width, int height)
 {
 
-    C.offset = offset;
-    C.w = width;
-    C.h = height;
+// XXX XXX HERE!!!!!! I think I need to slightly change my interface to be
+// less ambiguous (set_A set_B bound_A bound_B [[set_C] bound_C] get_C)
+    C.bound_data(offset, height, width);
 
+// XXX this should no longer be needed
+/*
     int a_o = A.offset;
     int a_w = A.w;
     int a_h = A.h;
@@ -437,6 +565,7 @@ float* GPUMuller::get_C(int offset, int width, int height)
     int b_o = B.offset;
     int b_w = B.w;
     int b_h = B.h;
+*/
 
     //cout << "Before buffer creation: " << endl;
     //print_A();
@@ -447,12 +576,15 @@ float* GPUMuller::get_C(int offset, int width, int height)
     else
         check_buffers();
 
+// XXX this should no longer be needed
+/*
     bound_A(a_o, a_h, a_w);
     bound_B(b_o, b_h, b_w);
 
     C.offset = offset;
     C.w = width;
     C.h = height;
+*/
 
     //cout << "After rebounding: " << endl;
     //print_A();
@@ -460,10 +592,42 @@ float* GPUMuller::get_C(int offset, int width, int height)
 
     multiply();
     cout << "C after multiply: " << endl;
-    print_C(0, C.num_rows, C.num_cols);
+    print_C(0, C.get_total_rows(), C.get_total_cols());
 
-    return matrix_slice(C, offset, width, height);
+    return C.get_slice(offset, width, height);
 }
+
+
+/*
+void GPUMuller::scale(  float* input_data,
+                        float* temp_scaled_data,
+                        scaltype* scalings
+                        )
+{
+    // XXX make this actually do something
+    // XXX leaving this data laying around can cause some pretty serious
+    // safety problems
+    temp_scaled_data = input_data;
+}
+
+// Why am I scaling into a float here? Shouldn't this be a double? And if it
+// is, aren't I kind of screwed?
+float* GPUMuller::unscale(float* temp_scaled_data,
+                        scaltype* scalings
+                        )
+{
+    // XXX make this actually do something
+    // XXX is this going to cause a memory leak?
+    // XXX should this resolved by using set instead of a standard
+    // assignment?
+    // XXX leaving this data laying around can cause some pretty serious
+    // safety problems
+    float* tbr = new float[sizeof(temp_scaled_data)/sizeof(float)];
+    memcpy((void*)tbr, (void*)temp_scaled_data, sizeof(temp_scaled_data));
+    //return (float*)tbr;
+    return (float*)tbr;
+}
+*/
 
 
 void GPUMuller::test()

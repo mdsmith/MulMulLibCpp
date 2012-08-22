@@ -7,15 +7,16 @@
 #include <iostream>
 #include "naiveFunctions.h"
 #include "helperFunctions.h"
+#include "matrix.h"
 using namespace std;
 
 
 NaiveMuller::NaiveMuller()
 {
     //cout << "naiveMuller constructed" << endl;
-    A.set = false;
-    B.set = false;
-    C.set = false;
+    A.set_set(false);
+    B.set_set(false);
+    C.set_set(false);
 }
 
 const char* NaiveMuller::get_name()
@@ -27,15 +28,21 @@ const char* NaiveMuller::get_name()
 void NaiveMuller::multiply()
 {
     //C.data = naive_matrix_multiply(A.data, B.data, A.h, A.w, B.w);
-    set_C(naive_matrix_multiply(A.data, B.data, A.h, A.w, B.w), A.h, B.w);
+    set_C(  naive_matrix_multiply(  A.get_unscaled(),
+                                    B.get_unscaled(),
+                                    A.get_bound_rows(),
+                                    A.get_bound_cols(),
+                                    B.get_bound_cols()),
+            A.get_bound_rows(),
+            B.get_bound_cols());
 }
 
 
 float* NaiveMuller::get_C(int offset, int width, int height)
 {
     multiply();
-    if (C.set)
-        return matrix_slice(C, offset, width, height);
+    if (C.is_set())
+        return C.get_slice(offset, width, height);
     else
     {
         cout << "C is not set!" << endl;

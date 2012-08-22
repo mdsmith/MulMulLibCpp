@@ -21,6 +21,7 @@ int round_down(int number, int base)
     return (int)(number/base)*base;
 }
 
+/*
 float* pad(float array[], int row_num, int col_num, int base)
 {
     int round_col = round_up(col_num, base);
@@ -38,8 +39,11 @@ float* pad(float array[], int row_num, int col_num, int base)
     }
     return tbr;
 }
+*/
 
-float* matrix_slice(struct Matrix m, int offset, int width, int height)
+/*
+// XXX this needs to be fixed
+float* matrix_slice(Matrix m, int offset, int width, int height)
 {
     float* tbr = new float[width*height];
     float* start = m.data + offset;
@@ -51,6 +55,7 @@ float* matrix_slice(struct Matrix m, int offset, int width, int height)
     //cout << "height vs numrows: " << height << ", " << m.num_rows << endl;
     //return m.data;
 }
+*/
 
 const char * load_program_source(const char *filename)
 {

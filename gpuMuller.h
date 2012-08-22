@@ -1,6 +1,7 @@
 #ifndef GPUMULLER_H
 #define GPUMULLER_H
 #include "muller.h"
+typedef short scaltype;
 class GPUMuller: public Muller
 {
 private:
@@ -15,6 +16,8 @@ public:
     void set_C(float* C, int num_rows, int num_cols);
     void update_A(float* A, int offset, int ah, int ud, int num_rows, int num_cols);
     void update_B(float* B, int offset, int ud, int bw, int num_rows, int num_cols);
+    void bound_A(int offset, int ah, int ud);
+    void bound_B(int offset, int ud, int bw);
     void check_buffers();
     float* get_C(int offset, int width, int height);
     void test();

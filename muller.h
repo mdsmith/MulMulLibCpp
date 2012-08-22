@@ -1,6 +1,6 @@
 // Author: Martin Smith martin.audacis@gmail.com
 // Created: Early August, 2012
-// Last Edited: 8/5/12
+// Last Edited: 8/21/12
 
 #ifndef MULLER_H
 #define MULLER_H
@@ -9,13 +9,15 @@
 class Muller
 {
 protected:
-    struct Matrix A;
-    struct Matrix B;
-    struct Matrix C;
-    void update_matrix(struct Matrix &m, float* data, int offset, int h, int w, int num_rows, int num_cols);
-    void set_matrix(struct Matrix &m, float* data, int num_rows, int num_cols);
-    void bound_matrix(struct Matrix &m, int offset, int h, int w);
-    void print_mat(struct Matrix m, int offset, int num_rows, int num_cols);
+    Matrix A;
+    Matrix B;
+    Matrix C;
+    //void update_scales(struct Matrix &m, float* data, int* scalings);
+    //void update_scale_m(struct Matrix &m);
+    void update_matrix(Matrix &m, float* data, int offset, int h, int w, int num_rows, int num_cols);
+    void set_matrix(Matrix &m, float* data, int num_rows, int num_cols);
+    void bound_matrix(Matrix &m, int offset, int h, int w);
+    void print_mat(Matrix m, int offset, int num_rows, int num_cols);
     virtual void multiply() =0;
 public:
     virtual const char* get_name();
@@ -26,8 +28,9 @@ public:
     virtual void update_A(float* A, int offset, int ah, int ud, int num_rows, int num_cols);
     virtual void update_B(float* B, int offset, int ud, int bw);
     virtual void update_B(float* B, int offset, int ud, int bw, int num_rows, int num_cols);
-    void bound_A(int offset, int ah, int ud);
-    void bound_B(int offset, int ud, int bw);
+    //void update_scales();
+    virtual void bound_A(int offset, int ah, int ud);
+    virtual void bound_B(int offset, int ud, int bw);
     void print_A();
     void print_A(int offset, int num_rows, int num_cols);
     void print_B();

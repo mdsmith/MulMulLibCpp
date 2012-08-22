@@ -7,7 +7,7 @@ endif
 .PHONY: all clean
 all: mul ocl
 
-core_objs = muller.o helperFunctions.o
+core_objs = muller.o helperFunctions.o matrix.o
 naive_objs = naiveFunctions.o naiveMuller.o
 
 

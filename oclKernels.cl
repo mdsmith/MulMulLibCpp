@@ -1,8 +1,13 @@
 #define BLOCK_SIZE 16
+#define SCALAR 100
+typedef short scaltype;
 __kernel void matMul(
                 __global float* A,
+                __global scaltype* As,
                 __global float* B,
+                __global scaltype* Bs,
                 __global float* C,
+                __global scaltype* Cs,
                 int a_row_len,
                 int a_round_row_len,
                 int c_round_row_len,

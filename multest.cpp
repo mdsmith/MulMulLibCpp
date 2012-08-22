@@ -22,14 +22,18 @@ using namespace std;
 
 #define DIM1 4
 #define DIM2 4
-float A[DIM1*DIM2];
-float B[DIM2*DIM1];
+//float A[DIM1*DIM2];
+//float B[DIM2*DIM1];
+float* A;
+float* B;
 
 int test_muller(Muller* m, float* golden);
 void print_mat(float* m, int w, int h);
 
 int main()
 {
+    A = new float[DIM1*DIM2];
+    B = new float[DIM1*DIM2];
     int allpasscode = 0;
 
     srand((unsigned)time(0));
@@ -108,9 +112,12 @@ int test_muller(Muller* m, float* golden)
     //timeval t1, t2;
     //double elapsedTime;
 
+    cout << "setting A..." << endl;
     m->set_A(A, DIM1, DIM2);
     //m->set_B(B, DIM2, DIM1);
+    cout << "setting B..." << endl;
     m->set_B(A, DIM1, DIM2);
+    cout << "setting C..." << endl;
     m->set_C(A, DIM1, DIM2);
 
     //gettimeofday(&t1, NULL);
@@ -134,7 +141,10 @@ int test_muller(Muller* m, float* golden)
     cout << "A before update: ";
     m->print_A(0, DIM1, DIM2);
 
-    m->update_A(A, 0, 2, 2, DIM1, DIM2);
+    float* D = new float[DIM1*DIM2];
+    for (int i = 0; i < DIM1*DIM2; i++)
+        D[i] = i;
+    m->update_A(D, 0, 2, 2, DIM1, DIM2);
 
     cout << "A after update: ";
     m->print_A(0, DIM1, DIM2);
