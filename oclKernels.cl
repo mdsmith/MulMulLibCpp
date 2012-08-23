@@ -133,6 +133,8 @@ __kernel void matMul(
             // when should it move?
             //Csub += As[ty][k] * Bs[k][tx];
         }
+        // XXX actually perform some new scaling to ensure that things stay
+        // in bounds
 
         // Synchronize to make sure that the preceding
         // computation is done before loading two new
