@@ -20,7 +20,8 @@ using namespace std;
 
 #define BLOCK_SIZE 16
 #define PAD_SIZE 64
-#define SCALAR 100
+#define SCALAR 10
+#define SCAL_THRESH 1e-10
 
 bool cleanBuff;
 bool a_dirt;
@@ -43,9 +44,6 @@ cl_mem d_Cs;
 GPUMuller::GPUMuller()
 {
     //cout << "naiveMuller constructed" << endl;
-    //A = new Matrix();
-    //B = new Matrix();
-    //C = new Matrix();
     cleanBuff = false;
     a_dirt = false;
     b_dirt = false;
@@ -372,7 +370,7 @@ void GPUMuller::update_buffers()
 }
 
 
-// XXX updating buffers only works if you're replacing the whole buffer
+// INFO updating buffers only works if you're replacing the whole buffer
 // (nothing on the GPU will be written back before being overwritten)
 void GPUMuller::check_buffers()
 {
@@ -554,20 +552,7 @@ void GPUMuller::multiply()
 float* GPUMuller::get_C(int offset, int width, int height)
 {
 
-// XXX XXX HERE!!!!!! I think I need to slightly change my interface to be
-// less ambiguous (set_A set_B bound_A bound_B [[set_C] bound_C] get_C)
     C.bound_data(offset, height, width);
-
-// XXX this should no longer be needed
-/*
-    int a_o = A.offset;
-    int a_w = A.w;
-    int a_h = A.h;
-
-    int b_o = B.offset;
-    int b_w = B.w;
-    int b_h = B.h;
-*/
 
     //cout << "Before buffer creation: " << endl;
     //print_A();
@@ -577,16 +562,6 @@ float* GPUMuller::get_C(int offset, int width, int height)
         setup_context();
     else
         check_buffers();
-
-// XXX this should no longer be needed
-/*
-    bound_A(a_o, a_h, a_w);
-    bound_B(b_o, b_h, b_w);
-
-    C.offset = offset;
-    C.w = width;
-    C.h = height;
-*/
 
     //cout << "After rebounding: " << endl;
     //print_A();
@@ -598,38 +573,6 @@ float* GPUMuller::get_C(int offset, int width, int height)
 
     return C.get_slice(offset, width, height);
 }
-
-
-/*
-void GPUMuller::scale(  float* input_data,
-                        float* temp_scaled_data,
-                        scaltype* scalings
-                        )
-{
-    // XXX make this actually do something
-    // XXX leaving this data laying around can cause some pretty serious
-    // safety problems
-    temp_scaled_data = input_data;
-}
-
-// Why am I scaling into a float here? Shouldn't this be a double? And if it
-// is, aren't I kind of screwed?
-float* GPUMuller::unscale(float* temp_scaled_data,
-                        scaltype* scalings
-                        )
-{
-    // XXX make this actually do something
-    // XXX is this going to cause a memory leak?
-    // XXX should this resolved by using set instead of a standard
-    // assignment?
-    // XXX leaving this data laying around can cause some pretty serious
-    // safety problems
-    float* tbr = new float[sizeof(temp_scaled_data)/sizeof(float)];
-    memcpy((void*)tbr, (void*)temp_scaled_data, sizeof(temp_scaled_data));
-    //return (float*)tbr;
-    return (float*)tbr;
-}
-*/
 
 
 void GPUMuller::test()

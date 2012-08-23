@@ -1,6 +1,6 @@
 // Author: Martin Smith martin.audacis@gmail.com
 // Created: Early August 2012
-// Last Edited: 8/5/12
+// Last Edited: 8/22/12
 
 #ifdef OCL
 #include "gpuMuller.h"
@@ -27,7 +27,7 @@ using namespace std;
 float* A;
 float* B;
 
-int test_muller(Muller* m, float* golden);
+int update_submatrix_offset_test(Muller* m, float* golden);
 void print_mat(float* m, int w, int h);
 
 int main()
@@ -79,19 +79,19 @@ int main()
 
 #ifdef OCL
     GPUMuller gm = GPUMuller();
-    allpasscode |= test_muller(&gm, goldenC);
+    allpasscode |= update_submatrix_offset_test(&gm, goldenC);
 #elif defined OMP
     OMPMuller om = OMPMuller();
-    allpasscode |= test_muller(&om, goldenC);
+    allpasscode |= update_submatrix_offset_test(&om, goldenC);
 #elif defined FMA
     FMAMuller fm = FMAMuller();
-    allpasscode |= test_muller(&fm, goldenC);
+    allpasscode |= update_submatrix_offset_test(&fm, goldenC);
 #elif defined ARMA
     ArmaMuller am = ArmaMuller();
-    allpasscode |= test_muller(&am, goldenC);
+    allpasscode |= update_submatrix_offset_test(&am, goldenC);
 #else
     NaiveMuller nm = NaiveMuller();
-    allpasscode |= test_muller(&nm, goldenC);
+    allpasscode |= update_submatrix_offset_test(&nm, goldenC);
 #endif
 
     //}
@@ -107,7 +107,53 @@ int main()
     return allpasscode;
 }
 
-int test_muller(Muller* m, float* golden)
+int large_test(Muller* m, float* golden)
+{
+    cout << "setting A..." << endl;
+    m->set_A(A, DIM1, DIM2);
+    cout << "setting B..." << endl;
+    m->set_B(A, DIM1, DIM2);
+    cout << "setting C..." << endl;
+    m->set_C(A, DIM1, DIM2);
+
+    float* mulC = m->get_C(1, 2, 2);
+    cout << "OCL mul1: ";
+    print_mat(mulC, 2, 2);
+
+    cout << "A before update: ";
+    m->print_A(0, DIM1, DIM2);
+
+    float* D = new float[DIM1*DIM2];
+    for (int i = 0; i < DIM1*DIM2; i++)
+        D[i] = i;
+    m->update_A(D, 0, 2, 2, DIM1, DIM2);
+
+    cout << "A after update: ";
+    m->print_A(0, DIM1, DIM2);
+
+    mulC = m->get_C(1, 2, 2);
+    cout << "OCL mul2: ";
+    print_mat(mulC, 2, 2);
+
+    bool passed = true;
+    for (int i=0; i < DIM1*DIM2; i++)
+    {
+        //cout << golden[i] << " vs " << mulC[i] << endl;
+        if (golden[i] != mulC[i])
+            passed = false;
+    }
+    if (passed)
+    {
+        //cout << "Test PASSED!" << endl;
+        return 0;
+    }
+    else
+    {
+        //cout << "Test FAILED!" << endl;
+        return 1;
+    }
+}
+int update_submatrix_offset_test(Muller* m, float* golden)
 {
     //timeval t1, t2;
     //double elapsedTime;
