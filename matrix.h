@@ -43,12 +43,12 @@ public:
                     int num_cols);
     void bound_data(int offset, int h, int w);
     void print_mat(int offset, int num_rows, int num_cols);
-    void update_data(   float* data
-                        , int offset
-                        , int h
-                        , int w
-                        , int num_rows
-                        , int num_cols
+    void update_data(   float* data,
+                        int offset,
+                        int h,
+                        int w,
+                        int num_rows,
+                        int num_cols
                         );
     void pad_to(int interval);
     bool is_set() {return set;};
