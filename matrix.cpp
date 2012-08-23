@@ -169,12 +169,12 @@ void Matrix::print_mat(int offset, int num_rows, int num_cols)
     cout << "}" << endl;
 }
 
-void Matrix::update_data(   float* data
-                            , int offset
-                            , int h
-                            , int w
-                            , int num_rows
-                            , int num_cols
+void Matrix::update_data(   float* data,
+                            int offset,
+                            int h,
+                            int w,
+                            int num_rows,
+                            int num_cols
                             )
 {
     float* start = this->data + offset;
