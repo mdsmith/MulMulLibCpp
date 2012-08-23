@@ -1,9 +1,7 @@
 // Author: Martin Smith
 // Project: Flexible MULtiple MULtiplicaiton LIBrary in C Plus Plus.
 // Created: Early August 2012
-// Last Edited: 8/20/2012
-//
-// XXX Implement scaling
+// Last Edited: 8/23/2012
 
 #include "gpuMuller.h"
 #include <iostream>
@@ -495,8 +493,6 @@ void GPUMuller::multiply()
     cout << ", " << global_work_size[1] << endl;
     cout << "Local work size: " << local_work_size[0];
     cout << ", " << local_work_size[1] << endl;
-    // XXX will the kernel scale in both directions and for both positive and
-    // negative values?
     err_num = clEnqueueNDRangeKernel(   queue,
                                         kernel,
                                         2,

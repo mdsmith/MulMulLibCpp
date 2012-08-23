@@ -200,11 +200,8 @@ void Muller::print_mat( Matrix m,
 
 }
 
-// XXX Matrix should eventually be a class and this should eventually
-// be a method
-// XXX along with this method there should be a method to return a
-// matrix that has been descaled, as well as one to return a descaled
-// matrix of doubles
+// Made redundant with Matrix moving to a class
+// Marked for removal 8/23/12
 /*
 void Muller::update_scale_m(struct Matrix &m)
 {

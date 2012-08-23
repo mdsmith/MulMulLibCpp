@@ -26,7 +26,6 @@ const char* OMPMuller::get_name()
 
 void OMPMuller::multiply()
 {
-    // XXX change this to something FMA related
     // XXX change this to something that can do subsection multiplication
     set_C(omp_matrix_multiply(A.data, B.data, A.h, A.w, B.w), A.h, B.w);
 }
