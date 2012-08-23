@@ -133,14 +133,32 @@ __kernel void matMul(
             // when should it move?
             //Csub += As[ty][k] * Bs[k][tx];
         }
-        // XXX actually perform some new scaling to ensure that things stay
-        // in bounds
 
         // Synchronize to make sure that the preceding
         // computation is done before loading two new
         // sub-matrices of A and B in the next iteration
         barrier(CLK_LOCAL_MEM_FENCE);
 
+    }
+    while (Csub_sig < SCAL_THRESH && Csub_sig > 0)
+    {
+        Csub_sig *= SCALAR;
+        Csub_exp += 1;
+    }
+    while (Csub_sig > -1*SCAL_THRESH && Csub_sig < 0)
+    {
+        Csub_sig *= SCALAR;
+        Csub_exp += 1;
+    }
+    while (Csub_sig > 1/SCAL_THRESH)
+    {
+        Csub_sig /= SCALAR;
+        Csub_exp -= 1;
+    }
+    while (Csub_sig < -1/SCAL_THRESH)
+    {
+        Csub_sig /= SCALAR;
+        Csub_exp -= 1;
     }
 
     // Write the block sub-matrix to device memory;
