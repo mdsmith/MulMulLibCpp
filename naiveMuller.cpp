@@ -28,13 +28,23 @@ const char* NaiveMuller::get_name()
 void NaiveMuller::multiply()
 {
     //C.data = naive_matrix_multiply(A.data, B.data, A.h, A.w, B.w);
-    set_C(  naive_matrix_multiply(  A.get_unscaled(),
+    C.update_data(  naive_matrix_multiply(  A.get_unscaled(),
                                     B.get_unscaled(),
+                                    A.get_offset(),
+                                    B.get_offset(),
                                     A.get_bound_rows(),
+                                    A.get_total_rows(),
                                     A.get_bound_cols(),
-                                    B.get_bound_cols()),
-            A.get_bound_rows(),
-            B.get_bound_cols());
+                                    A.get_total_cols(),
+                                    B.get_bound_cols(),
+                                    B.get_total_cols()
+                                    ),
+                    0,
+                    A.get_bound_rows(),
+                    B.get_bound_cols(),
+                    A.get_total_rows(),
+                    B.get_total_cols()
+                    );
 }
 
 

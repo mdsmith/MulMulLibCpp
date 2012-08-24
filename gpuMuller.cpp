@@ -249,11 +249,23 @@ void GPUMuller::update_buffers()
         C.pad_to(PAD_SIZE);
     }
 
-/*
     cout << "Post padding: " << endl;
-    print_A();
-    print_B();
-    print_C();
+    cout << "A total: " << endl;
+    A.print_total();
+    cout << "A bound: " << endl;
+    A.print_bound();
+    //print_A();
+    cout << "B total: " << endl;
+    B.print_total();
+    cout << "B bound: " << endl;
+    B.print_bound();
+    //print_B();
+    cout << "C total: " << endl;
+    C.print_total();
+    cout << "C bound: " << endl;
+    C.print_bound();
+    //print_C();
+/*
 */
 
     // work dim setup
@@ -352,7 +364,7 @@ void GPUMuller::update_buffers()
                                 sizeof(float),
                                 NULL,
                                 &err_num);
-        d_C = clCreateBuffer(   ctx,
+        d_Cs = clCreateBuffer(   ctx,
                                 CL_MEM_READ_WRITE,
                                 A.get_total_rows() * B.get_total_cols() *
                                 sizeof(int),
@@ -516,15 +528,30 @@ void GPUMuller::multiply()
     cout << "Multiplication: " << elapsedTime << " ms.\n";
 
     // get results
+    float* temp_sigs = new float[C.get_total_rows() * C.get_total_cols()];
+    for (int i = 0; i < C.get_total_rows() * C.get_total_cols(); i++)
+    {
+        temp_sigs[i] = 1.2f;
+    }
     err_num = clEnqueueReadBuffer(  queue,
                                     d_C,
                                     CL_FALSE,
                                     0,
-                                    C.get_total_rows() * C.get_total_cols()* sizeof(float),
-                                    C.get_scaled(),
+                                    C.get_total_rows() * C.get_total_cols() *
+                                    sizeof(float),
+                                    //C.get_scaled(),
+                                    temp_sigs,
                                     0,
                                     NULL,
                                     NULL);
+    cout << "temp_sigs" << endl;
+    print_float_mat(temp_sigs, 0, C.get_total_rows(), C.get_total_cols(),
+                            C.get_total_rows(), C.get_total_cols());
+    if (err_num != CL_SUCCESS)
+    {
+        cout << "significand read fail" << endl;
+        exit(err_num);
+    }
     err_num = clEnqueueReadBuffer(  queue,
                                     d_Cs,
                                     CL_FALSE,
@@ -537,7 +564,7 @@ void GPUMuller::multiply()
                                     NULL);
     if (err_num != CL_SUCCESS)
     {
-        cout << "read fail" << endl;
+        cout << "exponent read fail" << endl;
         exit(err_num);
     }
     clFinish(queue);
@@ -547,7 +574,6 @@ void GPUMuller::multiply()
 
 float* GPUMuller::get_C(int offset, int width, int height)
 {
-
     C.bound_data(offset, height, width);
 
     //cout << "Before buffer creation: " << endl;

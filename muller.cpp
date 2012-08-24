@@ -108,7 +108,7 @@ void Muller::update_matrix( Matrix &m,
 void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
 {
     m.set_data(data, 0, num_rows, num_cols, num_rows, num_cols);
-    cout << "done setting data in Muller!" << endl;
+    //cout << "done setting data in Muller!" << endl;
     /*
     m.data = data;
     m.offset = 0;

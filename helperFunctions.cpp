@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+
+//#define WOLFRAM
 using namespace std;
 
 // definitions
@@ -75,4 +77,28 @@ const char * load_program_source(const char *filename)
     source[statbuf.st_size] = '\0';
 
     return source;
+}
+
+void print_float_mat(float* m, int offset, int h, int w, int nr, int nc)
+{
+    cout << "{";
+    for (int i = 0; i < h; i++)
+    {
+        cout << "{";
+        for (int j = 0; j < w; j++)
+        {
+            if (j > 0 && j < w)
+                cout << ",";
+            printf("%4.4f", m[offset + i*nc + j]);
+        }
+        if (i < h-1)
+#if defined WOLFRAM
+            cout << "},";
+#else
+            cout << "}," << endl;
+#endif
+        else
+            cout << "}";
+    }
+    cout << "}" << endl;
 }

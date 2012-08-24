@@ -43,6 +43,8 @@ public:
                     int num_cols);
     void bound_data(int offset, int h, int w);
     void print_mat(int offset, int num_rows, int num_cols);
+    void print_total();
+    void print_bound();
     void update_data(   float* data,
                         int offset,
                         int h,

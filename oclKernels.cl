@@ -3,6 +3,10 @@
 #define SCAL_THRESH 1e-10
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
+// XXX this is multiplying the wrong parts together, thus all the zeros
+// XXX it doesn't look like data is being copied to all the right places.
+// Check post-padding
+
 __kernel void matMul(
                 __global float* A,
                 __global int* Ascalings,

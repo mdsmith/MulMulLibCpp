@@ -2,6 +2,8 @@
 // Created: 8/21/2012
 // Last Edited On: 8/21/2012
 
+//#define WOLFRAM
+
 #include "matrix.h"
 #include "helperFunctions.h"
 #include <math.h>
@@ -115,6 +117,7 @@ void Matrix::set_data(  float* data,
                         )
 {
     if (this->data != NULL) delete[] this->data;
+    if (this->scalings != NULL) delete[] this->scalings;
     //cout << " ...done!" << endl;
     this->data = data;
     this->offset = 0;
@@ -135,10 +138,14 @@ void Matrix::bound_data(int offset, int h, int w)
     this->w = w;
 }
 
+// XXX change this to print bound and print total
+// XXX Problem: padding isn't changing the offset!
+// XXX at this point everything should be changed to do away with the
+// "offset" way of doing things
 void Matrix::print_mat(int offset, int num_rows, int num_cols)
 {
     int row_offset = offset / this->num_cols;
-    int col_offset = offset % this->num_rows;
+    int col_offset = offset % this->num_cols;
     cout << "h: " << h;
     cout << " w: " << w;
     cout << " offset: " << this->offset;
@@ -156,17 +163,31 @@ void Matrix::print_mat(int offset, int num_rows, int num_cols)
             if (j > col_offset && j < col_offset + num_cols)
                 cout << ",";
 
-            printf( "%1.0f",
+            printf( "%4.4f",
                     data[i*this->num_cols + j] *
                     pow(10.0, scalings[i*this->num_cols + j])
                     );
         }
         if (i < row_offset + num_rows-1)
+        #if defined WOLFRAM
             cout << "},";
+        #else
+            cout << "}," << endl;
+        #endif
         else
             cout << "}";
     }
     cout << "}" << endl;
+}
+
+void Matrix::print_total()
+{
+    print_mat(0, num_rows, num_cols);
+}
+
+void Matrix::print_bound()
+{
+    print_mat(offset, h, w);
 }
 
 void Matrix::update_data(   float* data,

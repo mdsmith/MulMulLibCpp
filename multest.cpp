@@ -1,6 +1,8 @@
 // Author: Martin Smith martin.audacis@gmail.com
 // Created: Early August 2012
-// Last Edited: 8/22/12
+// Last Edited: 8/23/12
+
+//#define WOLFRAM
 
 #ifdef OCL
 #include "gpuMuller.h"
@@ -15,54 +17,79 @@
 #include <iostream>
 #include <stdio.h>
 #include "naiveFunctions.h"
+#include "helperFunctions.h"
 #include "muller.h"
 #include <cstdlib>
 #include <sys/time.h>
 using namespace std;
 
-#define DIM1 4
-#define DIM2 4
-//float A[DIM1*DIM2];
-//float B[DIM2*DIM1];
+// A will here be the nodes
+
+#define ANR 10 // 5 sites * 2 nodes
+#define ANC 3 // 5 sites * 2 nodes
+#define AO 15   // 5 sites * 3 codons * 1 node = 1 full node skipped (we're
+                // looking at the second node)
+#define AH 5 // 5 Sites * 1 node = 1 full node
+#define UD 3 // 3 codons, AKA ANC and BNR
+// B will here be the models
+#define BNR 3 // 3 codons
+#define BNC 6 // 3 codons * 2 nodes
+#define BO 3 // 3 codons * 3 codons * 1 node = 1 full node skipped
+#define BW 3 // 3 codons * 1 nodes
 float* A;
 float* B;
 
 int update_submatrix_offset_test(Muller* m, float* golden);
-void print_mat(float* m, int w, int h);
+//void print_float_mat(float* m, int offset, int h, int w, int nr, int nc);
+int simulate_MLE(Muller* m, float* golden);
 
 int main()
 {
-    A = new float[DIM1*DIM2];
-    B = new float[DIM1*DIM2];
+    A = new float[ANR*ANC];
+    B = new float[BNR*BNC];
     int allpasscode = 0;
 
-    srand((unsigned)time(0));
+    srand(time(NULL));
 
-    for (int i = 0; i < DIM1*DIM2; i++)
+    for (int i = 0; i < ANR*ANC; i++)
     {
-        //A[i] = (rand()%10)+1;
-        //B[i] = (rand()%10)+1;
-        A[i] = i;
-        B[i] = DIM1*DIM2 - i;
+        A[i] = ((rand()%1000)+1)/1000.0;
     }
-    cout << "A at the start: ";
-    print_mat(A, DIM1, DIM2);
-    cout << "B at the start: ";
-    print_mat(B, DIM2, DIM1);
+    for (int i = 0; i < BNR*BNC; i++)
+    {
+        B[i] = ((rand()%1000)+1)/1000.0;
+    }
+    cout << "A at the start: " << endl;
+    print_float_mat(A, 0, ANR, ANC, ANR, ANC);
+    cout << "A bound: " << endl;
+    print_float_mat(A, AO, AH, UD, ANR, ANC);
+    cout << "B at the start: " << endl;
+    print_float_mat(B, 0, BNR, BNC, BNR, BNC);
+    cout << "B bound: " << endl;
+    print_float_mat(B, BO, UD, BW, BNR, BNC);
 
-/*
     timeval t1, t2;
     double elapsedTime;
     gettimeofday(&t1, NULL);
-*/
 
-    float* goldenC = naive_matrix_multiply(A,B, DIM1, DIM2, DIM1);
-    cout << "Golden C: ";
-    print_mat(goldenC, DIM1, DIM1);
-    /*
+    float* goldenC = naive_matrix_multiply( A,
+                                            B,
+                                            AO,
+                                            BO,
+                                            AH,
+                                            ANR,
+                                            UD,
+                                            UD,
+                                            BW, //61,
+                                            BNC
+                                            );
+    cout << "Golden C: " << endl;
+    print_float_mat(goldenC, 0, AH, BW, AH, BW);
+/*
     // multiple multiply!
     goldenC = naive_matrix_multiply(goldenC,A, DIM1, DIM1, DIM2);
     print_mat(goldenC, DIM1, DIM2);
+*/
 
     gettimeofday(&t2, NULL);
 
@@ -72,14 +99,16 @@ int main()
     cout << "Golden (Naive): " << elapsedTime << " ms.\n";
 
     gettimeofday(&t1, NULL);
-*/
 
-    //for (int i = 0; i < 1000; i++)
-    //{
+    int trials = 1;
+    for (int i = 0; i < trials; i++)
+    {
 
 #ifdef OCL
     GPUMuller gm = GPUMuller();
-    allpasscode |= update_submatrix_offset_test(&gm, goldenC);
+    //allpasscode |= update_submatrix_offset_test(&gm, goldenC);
+    allpasscode |= simulate_MLE(&gm, goldenC);
+/*
 #elif defined OMP
     OMPMuller om = OMPMuller();
     allpasscode |= update_submatrix_offset_test(&om, goldenC);
@@ -92,21 +121,63 @@ int main()
 #else
     NaiveMuller nm = NaiveMuller();
     allpasscode |= update_submatrix_offset_test(&nm, goldenC);
+*/
 #endif
 
-    //}
-/*
+    }
     gettimeofday(&t2, NULL);
 
     elapsedTime = (t2.tv_sec -t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    cout << "per trial (mean): " << elapsedTime/1000 << " ms.\n";
-*/
+    cout << "per trial (mean): " << elapsedTime/trials << " ms.\n";
 
     return allpasscode;
 }
 
+
+int simulate_MLE(Muller* m, float* golden)
+{
+    cout << "A pre: " << endl;
+    print_float_mat(A, 0, ANR, ANC, ANR, ANC);
+    m->set_A(A, ANR, ANC);
+    cout << "A set: " << endl;
+    m->print_A(0, ANR, ANC);
+    m->set_B(B, BNR, BNC);
+    cout << "B set: " << endl;
+    m->print_B(0, BNR, BNC);
+    m->bound_A(AO, AH, UD);
+    cout << "A bound: " << endl;
+    m->print_A(AO, AH, UD);
+    m->bound_B(BO, UD, BW);
+    cout << "B bound: " << endl;
+    m->print_B(BO, UD, BW);
+    float* mulC = m->get_C(0, AH, BW);
+    cout << "C results: " << endl;
+    print_float_mat(mulC, 0, AH, BW, AH, BW);
+    m->print_C(0, AH, BW);
+
+    bool passed = true;
+    for (int i=0; i < AH*BW; i++)
+    {
+        //cout << golden[i] << " vs " << mulC[i] << endl;
+        if (golden[i] != mulC[i])
+            passed = false;
+    }
+    if (passed)
+    {
+        cout << "Test PASSED!" << endl;
+        return 0;
+    }
+    else
+    {
+        cout << "Test FAILED!" << endl;
+        return 1;
+    }
+}
+
+
+/*
 int large_test(Muller* m, float* golden)
 {
     cout << "setting A..." << endl;
@@ -200,21 +271,17 @@ int update_submatrix_offset_test(Muller* m, float* golden)
     print_mat(mulC, 2, 2);
 
 
-/*
 //  Simple Multiply:
-    float* mulC = m->get_C(0, DIM1, DIM1);
-    cout << "OCL mul1: ";
-    print_mat(mulC, DIM1, DIM1);
-*/
+    //float* mulC = m->get_C(0, DIM1, DIM1);
+    //cout << "OCL mul1: ";
+    //print_mat(mulC, DIM1, DIM1);
 
-/*
 //  Multiple multiply:
-    m->set_A(mulC, DIM1, DIM1);
-    m->set_B(A, DIM1, DIM2);
-    mulC = m->get_C(0, DIM1, DIM2);
-    cout << "OCL mul2: ";
-    print_mat(mulC, DIM1, DIM2);
-*/
+    //m->set_A(mulC, DIM1, DIM1);
+    //m->set_B(A, DIM1, DIM2);
+    //mulC = m->get_C(0, DIM1, DIM2);
+    //cout << "OCL mul2: ";
+    //print_mat(mulC, DIM1, DIM2);
 
     //gettimeofday(&t2, NULL);
 
@@ -243,7 +310,7 @@ int update_submatrix_offset_test(Muller* m, float* golden)
 }
 
 
-void print_mat(float* m, int w, int h)
+void print_mat(float* m, int offset, int h, int w, int nr, int nc)
 {
     cout << "{";
     for (int i = 0; i < h; i++)
@@ -253,21 +320,17 @@ void print_mat(float* m, int w, int h)
         {
             if (j > 0 && j < w)
                 cout << ",";
-            printf("%1.0f", m[i*w + j]);
+            printf("%4.4f", m[offset + i*nc + j]);
         }
         if (i < h-1)
+#if defined WOLFRAM
             cout << "},";
+#else
+            cout << "}," << endl;
+#endif
         else
             cout << "}";
     }
     cout << "}" << endl;
-/*
-    for (int i = 0; i < h; i++)
-    {
-        for (int j = 0; j < w; j++)
-            printf("%4.4f ", m[i*w + j]);
-        cout << endl;
-    }
-    cout << endl;
-*/
 }
+*/
