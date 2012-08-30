@@ -76,28 +76,28 @@ void GPUMuller::set_C(float* C, int num_rows, int num_cols)
     Muller::set_C(C, num_rows, num_cols);
 }
 
-void GPUMuller::update_A(float* A, int offset, int ah, int ud, int num_rows, int num_cols)
+void GPUMuller::update_A(float* A, int row_offset, int col_offset, int ah, int ud, int num_rows, int num_cols)
 {
-    Muller::update_A(A, offset, ah, ud, num_rows, num_cols);
+    Muller::update_A(A, row_offset, col_offset, ah, ud, num_rows, num_cols);
     if (ctx != NULL)
         a_dirt = true;
 }
 
-void GPUMuller::update_B(float* B, int offset, int ud, int bw, int num_rows, int num_cols)
+void GPUMuller::update_B(float* B, int row_offset, int col_offset, int ud, int bw, int num_rows, int num_cols)
 {
-    Muller::update_B(B, offset, ud, bw, num_rows, num_cols);
+    Muller::update_B(B, row_offset, col_offset, ud, bw, num_rows, num_cols);
     if (ctx != NULL)
         b_dirt = true;
 }
 
-void GPUMuller::bound_A(int offset, int ah, int ud)
+void GPUMuller::bound_A(int row_offset, int col_offset, int ah, int ud)
 {
-    Muller::bound_A(offset, ah, ud);
+    Muller::bound_A(row_offset, col_offset, ah, ud);
 }
 
-void GPUMuller::bound_B(int offset, int ud, int bw)
+void GPUMuller::bound_B(int row_offset, int col_offset, int ud, int bw)
 {
-    Muller::bound_B(offset, ud, bw);
+    Muller::bound_B(row_offset, col_offset, ud, bw);
 }
 
 
@@ -250,18 +250,18 @@ void GPUMuller::update_buffers()
     }
 
     cout << "Post padding: " << endl;
-    cout << "A total: " << endl;
-    A.print_total();
+    //cout << "A total: " << endl;
+    //A.print_total();
     cout << "A bound: " << endl;
     A.print_bound();
     //print_A();
-    cout << "B total: " << endl;
-    B.print_total();
+    //cout << "B total: " << endl;
+    //B.print_total();
     cout << "B bound: " << endl;
     B.print_bound();
     //print_B();
-    cout << "C total: " << endl;
-    C.print_total();
+    //cout << "C total: " << endl;
+    //C.print_total();
     cout << "C bound: " << endl;
     C.print_bound();
     //print_C();
@@ -471,9 +471,12 @@ void GPUMuller::multiply()
     cl_int temp_bw_round = B.get_total_cols();
     cl_int temp_ud = A.get_bound_cols();
     cl_int temp_ud_round = A.get_total_cols();
-    cl_int temp_a_offset = A.get_offset();
-    cl_int temp_b_offset = B.get_offset();
-    cl_int temp_c_offset = C.get_offset();
+    cl_int temp_a_row_offset = A.get_row_offset();
+    cl_int temp_a_col_offset = A.get_col_offset();
+    cl_int temp_b_row_offset = B.get_row_offset();
+    cl_int temp_b_col_offset = B.get_col_offset();
+    cl_int temp_c_row_offset = C.get_row_offset();
+    cl_int temp_c_col_offset = C.get_col_offset();
 
     // set kernel args
     err_num  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &d_A);
@@ -487,9 +490,30 @@ void GPUMuller::multiply()
     err_num |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void *) &temp_bw_round);
     err_num |= clSetKernelArg(kernel, 9, sizeof(cl_int), (void *) &temp_bw);
     err_num |= clSetKernelArg(kernel, 10, sizeof(cl_int), (void *) &temp_ah);
-    err_num |= clSetKernelArg(kernel, 11, sizeof(cl_int), (void *) &temp_a_offset);
-    err_num |= clSetKernelArg(kernel, 12, sizeof(cl_int), (void *) &temp_b_offset);
-    err_num |= clSetKernelArg(kernel, 13, sizeof(cl_int), (void *) &temp_c_offset);
+    err_num |= clSetKernelArg(  kernel,
+                                11,
+                                sizeof(cl_int),
+                                (void *) &temp_a_row_offset);
+    err_num |= clSetKernelArg(  kernel,
+                                12,
+                                sizeof(cl_int),
+                                (void *) &temp_a_col_offset);
+    err_num |= clSetKernelArg(  kernel,
+                                13,
+                                sizeof(cl_int),
+                                (void *) &temp_b_row_offset);
+    err_num |= clSetKernelArg(  kernel,
+                                14,
+                                sizeof(cl_int),
+                                (void *) &temp_b_col_offset);
+    err_num |= clSetKernelArg(  kernel,
+                                15,
+                                sizeof(cl_int),
+                                (void *) &temp_c_row_offset);
+    err_num |= clSetKernelArg(  kernel,
+                                16,
+                                sizeof(cl_int),
+                                (void *) &temp_c_col_offset);
     if (err_num != CL_SUCCESS)
     {
         cout << "kernel arg set fail" << endl;
@@ -528,25 +552,30 @@ void GPUMuller::multiply()
     cout << "Multiplication: " << elapsedTime << " ms.\n";
 
     // get results
+    /*
     float* temp_sigs = new float[C.get_total_rows() * C.get_total_cols()];
     for (int i = 0; i < C.get_total_rows() * C.get_total_cols(); i++)
+    //for (int i = 5; i < 10; i++)
     {
         temp_sigs[i] = 1.2f;
     }
+    */
     err_num = clEnqueueReadBuffer(  queue,
                                     d_C,
                                     CL_FALSE,
                                     0,
                                     C.get_total_rows() * C.get_total_cols() *
                                     sizeof(float),
-                                    //C.get_scaled(),
-                                    temp_sigs,
+                                    C.get_scaled(),
+                                    //temp_sigs,
                                     0,
                                     NULL,
                                     NULL);
+    /*
     cout << "temp_sigs" << endl;
-    print_float_mat(temp_sigs, 0, C.get_total_rows(), C.get_total_cols(),
+    print_float_mat(temp_sigs, 0, 0, C.get_total_rows(), C.get_total_cols(),
                             C.get_total_rows(), C.get_total_cols());
+    */
     if (err_num != CL_SUCCESS)
     {
         cout << "significand read fail" << endl;
@@ -572,9 +601,9 @@ void GPUMuller::multiply()
 }
 
 
-float* GPUMuller::get_C(int offset, int width, int height)
+float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
 {
-    C.bound_data(offset, height, width);
+    C.bound_data(row_offset, col_offset, height, width);
 
     //cout << "Before buffer creation: " << endl;
     //print_A();
@@ -590,10 +619,10 @@ float* GPUMuller::get_C(int offset, int width, int height)
     //print_B();
 
     multiply();
-    cout << "C after multiply: " << endl;
-    print_C(0, C.get_total_rows(), C.get_total_cols());
+    //cout << "C after multiply: " << endl;
+    //print_C(0, 0, C.get_total_rows(), C.get_total_cols());
 
-    return C.get_slice(offset, width, height);
+    return C.get_slice(row_offset, col_offset, width, height);
 }
 
 

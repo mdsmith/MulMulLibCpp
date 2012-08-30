@@ -13,20 +13,25 @@ const char* Muller::get_name()
     return "Abstract?!";
 }
 
-void Muller::update_A(float* A, int offset, int ah, int ud)
+void Muller::update_A(  float* A,
+                        int row_offset,
+                        int col_offset,
+                        int ah,
+                        int ud)
 {
-    update_matrix(this->A, A, offset, ah, ud, ah, ud);
+    update_matrix(this->A, A, row_offset, col_offset, ah, ud, ah, ud);
 }
 
 void Muller::update_A(  float* A,
-                        int offset,
+                        int row_offset,
+                        int col_offset,
                         int ah,
                         int ud,
                         int num_rows,
                         int num_cols
                         )
 {
-    update_matrix(this->A, A, offset, ah, ud, num_rows, num_cols);
+    update_matrix(this->A, A, row_offset, col_offset, ah, ud, num_rows, num_cols);
 }
 
 
@@ -36,30 +41,32 @@ void Muller::set_A(float* A, int num_rows, int num_cols)
 }
 
 
-void Muller::bound_A(int offset, int ah, int ud)
+void Muller::bound_A(int row_offset, int col_offset, int ah, int ud)
 {
-    bound_matrix(this->A, offset, ah, ud);
+    bound_matrix(this->A, row_offset, col_offset, ah, ud);
 }
 
 
 void Muller::update_B(  float* B,
-                        int offset,
+                        int row_offset,
+                        int col_offset,
                         int ud,
                         int bw
                         )
 {
-    update_matrix(this->B, B, offset, ud, bw, ud, bw);
+    update_matrix(this->B, B, row_offset, col_offset, ud, bw, ud, bw);
 }
 
 void Muller::update_B(  float* B,
-                        int offset,
+                        int row_offset,
+                        int col_offset,
                         int ud,
                         int bw,
                         int num_rows,
                         int num_cols
                         )
 {
-    update_matrix(this->B, B, offset, ud, bw, num_rows, num_cols);
+    update_matrix(this->B, B, row_offset, col_offset, ud, bw, num_rows, num_cols);
 }
 
 
@@ -69,9 +76,9 @@ void Muller::set_B(float* B, int num_rows, int num_cols)
 }
 
 
-void Muller::bound_B(int offset, int ud, int bw)
+void Muller::bound_B(int row_offset, int col_offset, int ud, int bw)
 {
-    bound_matrix(this->B, offset, ud, bw);
+    bound_matrix(this->B, row_offset, col_offset, ud, bw);
 }
 
 
@@ -84,14 +91,15 @@ void Muller::set_C(float* C, int num_rows, int num_cols)
 // Update a subset of a matrix
 void Muller::update_matrix( Matrix &m,
                             float* data,
-                            int offset,
+                            int row_offset,
+                            int col_offset,
                             int h,
                             int w,
                             int num_rows,
                             int num_cols
                             )
 {
-    m.update_data(data, offset, h, w, num_rows, num_cols);
+    m.update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
     /*
     float* start = m.data + offset;
     int sr = offset / m.num_cols;
@@ -107,7 +115,7 @@ void Muller::update_matrix( Matrix &m,
 // Set an entirely new matrix
 void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
 {
-    m.set_data(data, 0, num_rows, num_cols, num_rows, num_cols);
+    m.set_data(data, 0, 0, num_rows, num_cols, num_rows, num_cols);
     //cout << "done setting data in Muller!" << endl;
     /*
     m.data = data;
@@ -124,9 +132,9 @@ void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
 
 
 // Set a new block up for multiplication
-void Muller::bound_matrix(Matrix &m, int offset, int h, int w)
+void Muller::bound_matrix(Matrix &m, int row_offset, int col_offset, int h, int w)
 {
-    m.bound_data(offset, h, w);
+    m.bound_data(row_offset, col_offset, h, w);
 /*
     m.offset = offset;
     m.h = h;
@@ -136,43 +144,44 @@ void Muller::bound_matrix(Matrix &m, int offset, int h, int w)
 
 void Muller::print_A()
 {
-    A.print_mat(A.get_offset(), A.get_bound_rows(), A.get_bound_cols());
+    A.print_mat(A.get_row_offset(), A.get_col_offset(), A.get_bound_rows(), A.get_bound_cols());
 }
 
-void Muller::print_A(int offset, int num_rows, int num_cols)
+void Muller::print_A(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    A.print_mat(offset, num_rows, num_cols);
+    A.print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 void Muller::print_B()
 {
-    B.print_mat(B.get_offset(), B.get_bound_rows(), B.get_bound_cols());
+    B.print_mat(B.get_row_offset(), B.get_col_offset(), B.get_bound_rows(), B.get_bound_cols());
 }
 
-void Muller::print_B(int offset, int num_rows, int num_cols)
+void Muller::print_B(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    B.print_mat(offset, num_rows, num_cols);
+    B.print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 void Muller::print_C()
 {
-    C.print_mat(C.get_offset(), C.get_bound_rows(), C.get_bound_cols());
+    C.print_mat(C.get_row_offset(), C.get_col_offset(), C.get_bound_rows(), C.get_bound_cols());
 }
 
-void Muller::print_C(int offset, int num_rows, int num_cols)
+void Muller::print_C(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    C.print_mat(offset, num_rows, num_cols);
+    C.print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 
 // Print a matrix
 void Muller::print_mat( Matrix m,
-                        int offset,
+                        int row_offset,
+                        int col_offset,
                         int num_rows,
                         int num_cols
                         )
 {
-    m.print_mat(offset, num_rows, num_cols);
+    m.print_mat(row_offset, col_offset, num_rows, num_cols);
     /*
     cout << "m.h: " << m.h;
     cout << " m.w: " << m.w;

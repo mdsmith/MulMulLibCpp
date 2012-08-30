@@ -79,19 +79,21 @@ const char * load_program_source(const char *filename)
     return source;
 }
 
-void print_float_mat(float* m, int offset, int h, int w, int nr, int nc)
+// print the subset of m starting at the offset, where m has nr rows and nc
+// columns, and you're looking to print h rows and w columns of m.
+void print_float_mat(float* m, int row_offset, int col_offset, int h, int w, int nr, int nc)
 {
     cout << "{";
-    for (int i = 0; i < h; i++)
+    for (int r = row_offset; r < row_offset + h; r++)
     {
         cout << "{";
-        for (int j = 0; j < w; j++)
+        for (int c = col_offset; c < col_offset + w; c++)
         {
-            if (j > 0 && j < w)
+            if (c > col_offset && c < col_offset + w)
                 cout << ",";
-            printf("%4.4f", m[offset + i*nc + j]);
+            printf("%4.4f", m[r*nc + c]);
         }
-        if (i < h-1)
+        if (r < row_offset + h-1)
 #if defined WOLFRAM
             cout << "},";
 #else

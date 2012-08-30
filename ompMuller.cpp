@@ -31,11 +31,11 @@ void OMPMuller::multiply()
 }
 
 
-float* OMPMuller::get_C(int offset, int width, int height)
+float* OMPMuller::get_C(int row_offset, int col_offset, int width, int height)
 {
     multiply();
     if (C.set)
-        return matrix_slice(C, offset, width, height);
+        return matrix_slice(C, row_offset, col_offset, width, height);
     else
     {
         cout << "C is not set!" << endl;

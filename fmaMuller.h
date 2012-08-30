@@ -9,7 +9,7 @@ private:
 public:
     FMAMuller();
     const char* get_name();
-    float* get_C(int offset, int width, int height);
+    float* get_C(int row_offset, int col_offset, int width, int height);
     void test();
     ~FMAMuller();
 };

@@ -30,8 +30,10 @@ void NaiveMuller::multiply()
     //C.data = naive_matrix_multiply(A.data, B.data, A.h, A.w, B.w);
     C.update_data(  naive_matrix_multiply(  A.get_unscaled(),
                                     B.get_unscaled(),
-                                    A.get_offset(),
-                                    B.get_offset(),
+                                    A.get_row_offset(),
+                                    A.get_col_offset(),
+                                    B.get_row_offset(),
+                                    B.get_col_offset(),
                                     A.get_bound_rows(),
                                     A.get_total_rows(),
                                     A.get_bound_cols(),
@@ -39,6 +41,7 @@ void NaiveMuller::multiply()
                                     B.get_bound_cols(),
                                     B.get_total_cols()
                                     ),
+                    0,
                     0,
                     A.get_bound_rows(),
                     B.get_bound_cols(),
@@ -48,11 +51,11 @@ void NaiveMuller::multiply()
 }
 
 
-float* NaiveMuller::get_C(int offset, int width, int height)
+float* NaiveMuller::get_C(int row_offset, int col_offset, int width, int height)
 {
     multiply();
     if (C.is_set())
-        return C.get_slice(offset, width, height);
+        return C.get_slice(row_offset, col_offset, width, height);
     else
     {
         cout << "C is not set!" << endl;

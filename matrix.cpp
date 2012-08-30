@@ -109,7 +109,8 @@ double* Matrix::get_unscaled_double()
 }
 
 void Matrix::set_data(  float* data,
-                        int offset,
+                        int row_offset,
+                        int col_offset,
                         int h,
                         int w,
                         int num_rows,
@@ -120,7 +121,8 @@ void Matrix::set_data(  float* data,
     if (this->scalings != NULL) delete[] this->scalings;
     //cout << " ...done!" << endl;
     this->data = data;
-    this->offset = 0;
+    this->row_offset = row_offset;
+    this->col_offset = col_offset;
     this->h = num_rows;
     this->w = num_cols;
     this->num_rows = num_rows;
@@ -131,24 +133,21 @@ void Matrix::set_data(  float* data,
     update_scalings();
 }
 
-void Matrix::bound_data(int offset, int h, int w)
+void Matrix::bound_data(int row_offset, int col_offset, int h, int w)
 {
-    this->offset = offset;
+    this->row_offset = row_offset;
+    this->col_offset = col_offset;
     this->h = h;
     this->w = w;
 }
 
-// XXX change this to print bound and print total
 // XXX Problem: padding isn't changing the offset!
 // XXX at this point everything should be changed to do away with the
 // "offset" way of doing things
-void Matrix::print_mat(int offset, int num_rows, int num_cols)
+void Matrix::print_mat(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    int row_offset = offset / this->num_cols;
-    int col_offset = offset % this->num_cols;
     cout << "h: " << h;
     cout << " w: " << w;
-    cout << " offset: " << this->offset;
     cout << " row_offset: " << row_offset;
     cout << " col_offset: " << col_offset;
     cout << " num_rows: " << num_rows;
@@ -182,31 +181,32 @@ void Matrix::print_mat(int offset, int num_rows, int num_cols)
 
 void Matrix::print_total()
 {
-    print_mat(0, num_rows, num_cols);
+    print_mat(0, 0, num_rows, num_cols);
 }
 
 void Matrix::print_bound()
 {
-    print_mat(offset, h, w);
+    print_mat(row_offset, col_offset, h, w);
 }
 
-void Matrix::update_data(   float* data,
-                            int offset,
-                            int h,
-                            int w,
-                            int num_rows,
-                            int num_cols
+// replace the portion of memory specified by the row and column offsets with
+// data from float* data, where the size of the substitution is given by h
+// and w and the size of data is given by num_rows and num_cols
+void Matrix::update_data(   float* new_data,
+                            int row_offset,
+                            int col_offset,
+                            int sub_h,
+                            int sub_w,
+                            int newd_num_rows,
+                            int newd_num_cols
                             )
 {
-    float* start = this->data + offset;
-    int sr = offset / this->num_cols;
-    int sc = offset % this->num_cols;
-    for (int r = sr; r < sr+h; r++)
-        for (int c = sc; c < sc+w; c++)
-            if (r < this->num_rows && c < this->num_cols)
+    for (int r = row_offset; r < sub_h; r++)
+        for (int c = col_offset; c < sub_w; c++)
+            if (r < num_rows && c < num_cols)
             {
-                start[r*this->num_cols + c] = data[r*num_cols + c];
-                scalings[offset + r*this->num_cols + c] = 0;
+                data[r * num_cols + c] = new_data[r*newd_num_cols + c];
+                scalings[r * num_cols + c] = 0;
             }
     update_scalings();
 }
@@ -272,13 +272,23 @@ void Matrix::pad_to(int interval)
 
 // XXX This is redundant with get_scaled and get_unscaled
 // XXX this "offset" "width" "height" system is unintuitive and complex
-float* Matrix::get_slice(int offset, int width, int height)
+float* Matrix::get_slice(int row_offset, int col_offset, int width, int height)
 {
     float* tbr = new float[width*height];
+/*
     float* start = data + offset;
     for (int r = 0; r < height; r++)
         for (int c = 0; c < width; c++)
             tbr[r*width + c] = start[r*num_cols + c] * pow(10.0,
             (double)(scalings[offset + r*num_cols + c]));
+*/
+    for (int r = row_offset; r < row_offset + height; r++)
+        for (int c = col_offset; c < col_offset + width; c++)
+            if (r < num_rows && c < num_cols)
+                tbr[r*width + c] =  data[r*num_cols + c]
+                                    * pow(  10.0,
+                                            (double)(scalings[  r*num_cols
+                                                                + c])
+                                            );
     return tbr;
 }

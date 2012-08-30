@@ -2,10 +2,13 @@
 #include <iostream>
 using namespace std;
 
+// XXX offset changed, check
 float* naive_matrix_multiply(   float A[],
                                 float B[],
-                                int A_offset,
-                                int B_offset,
+                                int A_row_offset,
+                                int A_col_offset,
+                                int B_row_offset,
+                                int B_col_offset,
                                 int ah,
                                 int a_num_rows,
                                 int ud,
@@ -22,8 +25,8 @@ float* naive_matrix_multiply(   float A[],
             float sum = 0.0f;
             for (int l = 0; l < ud; l++)
             {
-                sum += A[A_offset + i*ud_total + l]
-                     * B[B_offset + l*b_num_cols + j];
+                sum += A[A_row_offset*ud_total + A_col_offset + i*ud_total + l]
+                     * B[B_row_offset*b_num_cols + B_col_offset + l*b_num_cols + j];
             }
             C[i*bw+j] = sum;
         }

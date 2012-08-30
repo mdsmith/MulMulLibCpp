@@ -3,8 +3,10 @@
 float* naive_matrix_multiply(float A[], float B[], int ah, int ud, int bw);
 float* naive_matrix_multiply(   float A[],
                                 float B[],
-                                int A_offset,
-                                int B_offset,
+                                int A_row_offset,
+                                int A_col_offset,
+                                int B_row_offset,
+                                int B_col_offset,
                                 int ah,
                                 int a_num_rows,
                                 int ud,

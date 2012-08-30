@@ -27,14 +27,15 @@ using namespace std;
 
 #define ANR 10 // 5 sites * 2 nodes
 #define ANC 3 // 5 sites * 2 nodes
-#define AO 15   // 5 sites * 3 codons * 1 node = 1 full node skipped (we're
-                // looking at the second node)
+#define ARO 5 // 5 sites * 3 codons * 1 node = 1 full node skipped (we're
+#define ACO 0 // 5 sites * 3 codons * 1 node = 1 full node skipped (we're
 #define AH 5 // 5 Sites * 1 node = 1 full node
 #define UD 3 // 3 codons, AKA ANC and BNR
 // B will here be the models
 #define BNR 3 // 3 codons
 #define BNC 6 // 3 codons * 2 nodes
-#define BO 3 // 3 codons * 3 codons * 1 node = 1 full node skipped
+#define BRO 0 // 3 codons * 3 codons * 1 node = 1 full node skipped
+#define BCO 3 // 3 codons * 3 codons * 1 node = 1 full node skipped
 #define BW 3 // 3 codons * 1 nodes
 float* A;
 float* B;
@@ -60,13 +61,13 @@ int main()
         B[i] = ((rand()%1000)+1)/1000.0;
     }
     cout << "A at the start: " << endl;
-    print_float_mat(A, 0, ANR, ANC, ANR, ANC);
+    print_float_mat(A, 0, 0, ANR, ANC, ANR, ANC);
     cout << "A bound: " << endl;
-    print_float_mat(A, AO, AH, UD, ANR, ANC);
+    print_float_mat(A, ARO, ACO, AH, UD, ANR, ANC);
     cout << "B at the start: " << endl;
-    print_float_mat(B, 0, BNR, BNC, BNR, BNC);
+    print_float_mat(B, 0, 0, BNR, BNC, BNR, BNC);
     cout << "B bound: " << endl;
-    print_float_mat(B, BO, UD, BW, BNR, BNC);
+    print_float_mat(B, BRO, BCO, UD, BW, BNR, BNC);
 
     timeval t1, t2;
     double elapsedTime;
@@ -74,8 +75,10 @@ int main()
 
     float* goldenC = naive_matrix_multiply( A,
                                             B,
-                                            AO,
-                                            BO,
+                                            ARO,
+                                            ACO,
+                                            BRO,
+                                            BCO,
                                             AH,
                                             ANR,
                                             UD,
@@ -84,7 +87,7 @@ int main()
                                             BNC
                                             );
     cout << "Golden C: " << endl;
-    print_float_mat(goldenC, 0, AH, BW, AH, BW);
+    print_float_mat(goldenC, 0, 0, AH, BW, AH, BW);
 /*
     // multiple multiply!
     goldenC = naive_matrix_multiply(goldenC,A, DIM1, DIM1, DIM2);
@@ -138,24 +141,26 @@ int main()
 
 int simulate_MLE(Muller* m, float* golden)
 {
-    cout << "A pre: " << endl;
-    print_float_mat(A, 0, ANR, ANC, ANR, ANC);
+    //cout << "A pre: " << endl;
+    //print_float_mat(A, 0, 0, ANR, ANC, ANR, ANC);
     m->set_A(A, ANR, ANC);
     cout << "A set: " << endl;
-    m->print_A(0, ANR, ANC);
+    m->print_A(0, 0, ANR, ANC);
     m->set_B(B, BNR, BNC);
     cout << "B set: " << endl;
-    m->print_B(0, BNR, BNC);
-    m->bound_A(AO, AH, UD);
+    m->print_B(0, 0, BNR, BNC);
+    m->bound_A(ARO, ACO, AH, UD);
     cout << "A bound: " << endl;
-    m->print_A(AO, AH, UD);
-    m->bound_B(BO, UD, BW);
+    m->print_A(ARO, ACO, AH, UD);
+    m->bound_B(BRO, BCO, UD, BW);
     cout << "B bound: " << endl;
-    m->print_B(BO, UD, BW);
-    float* mulC = m->get_C(0, AH, BW);
+    m->print_B(BRO, BCO, UD, BW);
+    // XXX this returns something different than...
+    float* mulC = m->get_C(0, 0, AH, BW);
     cout << "C results: " << endl;
-    print_float_mat(mulC, 0, AH, BW, AH, BW);
-    m->print_C(0, AH, BW);
+    print_float_mat(mulC, 0, 0, AH, BW, AH, BW);
+    // XXX ... this.
+    m->print_C(0, 0, AH, BW);
 
     bool passed = true;
     for (int i=0; i < AH*BW; i++)

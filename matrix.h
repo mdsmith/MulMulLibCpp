@@ -10,7 +10,8 @@ private:
     float scalar;
     int w;
     int h;
-    int offset;
+    int col_offset;
+    int row_offset;
     int num_rows;
     int num_cols;
 public:
@@ -34,19 +35,22 @@ public:
     int get_bound_rows() {return h;};
     int get_total_cols() {return num_cols;};
     int get_total_rows() {return num_rows;};
-    int get_offset() {return offset;};
+    int get_row_offset() {return row_offset;};
+    int get_col_offset() {return col_offset;};
     void set_data(  float* data,
-                    int offset,
+                    int row_offset,
+                    int col_offset,
                     int h,
                     int w,
                     int num_rows,
                     int num_cols);
-    void bound_data(int offset, int h, int w);
-    void print_mat(int offset, int num_rows, int num_cols);
+    void bound_data(int row_offset, int col_offset, int h, int w);
+    void print_mat(int row_offset, int col_offset, int num_rows, int num_cols);
     void print_total();
     void print_bound();
     void update_data(   float* data,
-                        int offset,
+                        int row_offset,
+                        int col_offset,
                         int h,
                         int w,
                         int num_rows,
@@ -55,9 +59,7 @@ public:
     void pad_to(int interval);
     bool is_set() {return set;};
     void set_set(bool setting) {set = setting;};
-    float* get_slice(int offset, int width, int height);
-
-    //void print_bound(); // XXX
+    float* get_slice(int row_offset, int col_offset, int width, int height);
 
     // if w*h is < this->num_rows*this->num_cols it will trim to this square
     // w/upper left @offset.

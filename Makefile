@@ -4,6 +4,8 @@ ifeq ($(UNAME), Linux)
 CXX = g++
 endif
 
+all_flags =
+
 .PHONY: all clean
 all: mul ocl
 
@@ -46,6 +48,7 @@ opt: $(opt_objs) opttest.o
 
 ocl_objs = gpuMuller.o $(naive_objs) $(core_objs)
 ocl: flags += -DOCL
+#ocl: all_flags += -DWOLFRAM
 
 ocl: ocl_lib = -framework OpenCL
 ifeq ($(UNAME), Linux)
@@ -112,7 +115,7 @@ arma: $(arma_objs) armamultest.o
 ###### ETC ######
 
 %.o: %.cpp
-	$(CXX) -c -o $@ $<
+	$(CXX) $(all_flags) -c -o $@ $<
 
 clean:
 	-rm -f *.o multest oclmultest fmamultest ompmultest armamultest optmultest
