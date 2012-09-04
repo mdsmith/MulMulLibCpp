@@ -60,6 +60,7 @@ int main()
     {
         B[i] = ((rand()%1000)+1)/1000.0;
     }
+    /*
     cout << "A at the start: " << endl;
     print_float_mat(A, 0, 0, ANR, ANC, ANR, ANC);
     cout << "A bound: " << endl;
@@ -68,6 +69,7 @@ int main()
     print_float_mat(B, 0, 0, BNR, BNC, BNR, BNC);
     cout << "B bound: " << endl;
     print_float_mat(B, BRO, BCO, UD, BW, BNR, BNC);
+    */
 
     timeval t1, t2;
     double elapsedTime;
@@ -155,11 +157,9 @@ int simulate_MLE(Muller* m, float* golden)
     m->bound_B(BRO, BCO, UD, BW);
     cout << "B bound: " << endl;
     m->print_B(BRO, BCO, UD, BW);
-    // XXX this returns something different than...
     float* mulC = m->get_C(0, 0, AH, BW);
     cout << "C results: " << endl;
     print_float_mat(mulC, 0, 0, AH, BW, AH, BW);
-    // XXX ... this.
     m->print_C(0, 0, AH, BW);
 
     bool passed = true;
