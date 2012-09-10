@@ -608,7 +608,7 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
     // get results
     err_num = clEnqueueReadBuffer(  queue,
                                     d_C,
-                                    CL_TRUE,
+                                    CL_FALSE,
                                     offset,
                                     //C.get_total_rows() * C.get_total_cols() *
                                     //sizeof(float),
@@ -620,6 +620,7 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
                                     NULL,
                                     NULL);
 
+    /*
     cout << "C fresh off the gpu: " << endl;
     cout << "size " << size << endl;
     for (int i = 0; i < size; i++)
@@ -629,7 +630,6 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
         cout << data_ptr[offset + i] << " ";
     }
     cout << endl;
-    /*
     cout << "temp_sigs" << endl;
     print_float_mat(temp_sigs, 0, 0, C.get_total_rows(), C.get_total_cols(),
                             C.get_total_rows(), C.get_total_cols());
