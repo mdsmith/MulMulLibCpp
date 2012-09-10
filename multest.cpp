@@ -157,6 +157,7 @@ int simulate_MLE(Muller* m, float* golden)
     m->bound_B(BRO, BCO, UD, BW);
     cout << "B bound: " << endl;
     m->print_B(BRO, BCO, UD, BW);
+    m->set_overwrite(true);
     float* mulC = m->get_C(0, 0, AH, BW);
     cout << "C results: " << endl;
     print_float_mat(mulC, 0, 0, AH, BW, AH, BW);

@@ -9,6 +9,7 @@
 class Muller
 {
 protected:
+    bool overwrite;
     Matrix A;
     Matrix B;
     Matrix C;
@@ -45,6 +46,7 @@ protected:
     virtual void multiply() =0;
 public:
     virtual const char* get_name();
+    virtual void set_overwrite(bool ov) {overwrite = ov;};
     virtual void set_A(float* A, int num_rows, int num_cols);
     virtual void set_A(double* A, int num_rows, int num_cols);
     virtual void set_B(float* B, int num_rows, int num_cols);

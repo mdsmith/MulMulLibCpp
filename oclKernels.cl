@@ -175,3 +175,30 @@ __kernel void matMul(
         Cscalings[c_offset + wB * gy + gx] = Csub_exp;
     }
 }
+
+__kernel void setVals(
+                        __global float* m,
+                        __global int* scalings,
+                        int row_offset,
+                        int col_offset,
+                        int row_len_round,
+                        int row_bound,
+                        int col_bound,
+                        float sig_val,
+                        int exp_val
+                        )
+{
+    int gx = get_global_id(0);
+    int gy = get_global_id(1);
+
+    if (gx + col_offset  < row_bound && gy + row_offset < col_bound)
+    {
+        m[(gy + row_offset) * row_len_round + (gx + col_offset)] = sig_val;
+        scalings[gx + col_offset] = exp_val;
+    }
+}
+
+
+
+
+

@@ -21,6 +21,8 @@ using namespace std;
 #define SCALAR 10
 #define SCAL_THRESH 1e-10
 
+//bool overwrite;
+bool evaluated;
 bool cleanBuff;
 bool a_dirt;
 bool b_dirt;
@@ -46,6 +48,8 @@ GPUMuller::GPUMuller()
     a_dirt = false;
     b_dirt = false;
     c_dirt = false;
+    evaluated = false;
+    overwrite = true;
 }
 
 
@@ -510,7 +514,7 @@ void GPUMuller::multiply()
     cl_int temp_b_col_offset = B.get_col_offset();
     cl_int temp_c_row_offset = C.get_row_offset();
     cl_int temp_c_col_offset = C.get_col_offset();
-    cl_bool temp_overwrite = false;
+    cl_bool temp_overwrite = overwrite;
 
     // set kernel args
     err_num  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &d_A);
@@ -591,35 +595,40 @@ void GPUMuller::multiply()
     //cout << "Multiplication: " << elapsedTime << " ms.\n";
 }
 
-void GPUMuller::read_C( int offset,
-                        int size,
-                        float* data_ptr,
-                        int* scalings_ptr)
+// Read from the significant and exponent buffers on the GPU
+// XXX this singular offset should probably be changed...?
+void GPUMuller::read_C( int offset, // This is the offset for both the GPU
+                                    // buffer and the data_ptr
+                        int size,   // This is the size of the chunk to write
+                                    // from this location in the GPU buffer
+                                    // to this location in data_ptr
+                        float* data_ptr,    // The host significand buffer ptr
+                        int* scalings_ptr)  // The host exponent buffer ptr
 {
     // get results
     err_num = clEnqueueReadBuffer(  queue,
                                     d_C,
-                                    CL_FALSE,
+                                    CL_TRUE,
                                     offset,
                                     //C.get_total_rows() * C.get_total_cols() *
                                     //sizeof(float),
                                     size * sizeof(float),
                                     //C.get_scaled(),
-                                    data_ptr,
+                                    data_ptr + offset,
                                     //temp_sigs,
                                     0,
                                     NULL,
                                     NULL);
 
-    //cout << "C fresh off the gpu: " << endl;
-    //cout << "size " << size << endl;
-    //for (int i = 0; i < size; i++)
-    //{
-        //cout << data_ptr[offset + i] << " ";
-        //if (i % C.get_total_cols() == 0)
-            //cout << endl;
-    //}
-    //cout << endl;
+    cout << "C fresh off the gpu: " << endl;
+    cout << "size " << size << endl;
+    for (int i = 0; i < size; i++)
+    {
+        if (i % C.get_total_cols() == 0)
+            cout << endl;
+        cout << data_ptr[offset + i] << " ";
+    }
+    cout << endl;
     /*
     cout << "temp_sigs" << endl;
     print_float_mat(temp_sigs, 0, 0, C.get_total_rows(), C.get_total_cols(),
@@ -638,7 +647,7 @@ void GPUMuller::read_C( int offset,
                                     //sizeof(int),
                                     size * sizeof(int),
                                     //C.get_scalings(),
-                                    scalings_ptr,
+                                    scalings_ptr + offset,
                                     0,
                                     NULL,
                                     NULL);
@@ -670,6 +679,7 @@ void GPUMuller::eval_C(int row_offset, int col_offset, int height, int width)
     //print_B();
 
     multiply();
+    evaluated = true;
     //cout << "C after multiply: " << endl;
     //print_C(0, 0, C.get_total_rows(), C.get_total_cols());
 }
@@ -677,6 +687,10 @@ void GPUMuller::eval_C(int row_offset, int col_offset, int height, int width)
 
 float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
 {
+    if (!evaluated)
+    {
+        eval_C(row_offset, col_offset, height, width);
+    }
     // XXX um, how about we use the actual offsets?
     read_C( 0,
             C.get_total_rows() * C.get_total_cols(),
@@ -684,6 +698,7 @@ float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
             C.get_scalings());
 
     // XXX something is broken here if they're printing different things.
+    /*
     C.print_total();
     cout << endl << endl << endl;
     cout << "root conditionals: " << endl;
@@ -694,6 +709,7 @@ float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
         if (i % width == 0)
             cout << endl;
     }
+    */
 
     //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
     //<< " w: " << width << endl;
@@ -704,12 +720,18 @@ float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
 double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int width)
 {
     // XXX um, how about we use the actual offsets?
+    if (!evaluated)
+    {
+        eval_C(row_offset, col_offset, height, width);
+    }
+
     read_C( 0,
             C.get_total_rows() * C.get_total_cols(),
             C.get_scaled(),
             C.get_scalings());
 
     // XXX something is broken here if they're printing different things.
+    /*
     C.print_total();
     cout << endl << endl << endl;
     cout << "root conditionals: " << endl;
@@ -720,6 +742,7 @@ double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int 
         if (i % width == 0)
             cout << endl;
     }
+    */
 
     //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
     //<< " w: " << width << endl;
