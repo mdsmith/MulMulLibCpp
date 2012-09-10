@@ -132,6 +132,35 @@ void Matrix::set_data(  float* data,
     set = true;
     update_scalings();
 }
+void Matrix::set_data(  double* data,
+                        int row_offset,
+                        int col_offset,
+                        int h,
+                        int w,
+                        int num_rows,
+                        int num_cols
+                        )
+{
+    if (this->data != NULL) delete[] this->data;
+    if (this->scalings != NULL) delete[] this->scalings;
+    //cout << " ...done!" << endl;
+    // XXX this needs to change to something that casts the data...
+    // XXX and does the scaling beforehand...
+    float* temp = new float[num_rows*num_cols];
+    for (int i = 0; i < num_rows*num_cols; i++)
+        temp[i] = (float)data[i];
+    this->data = temp;
+    this->row_offset = row_offset;
+    this->col_offset = col_offset;
+    this->h = num_rows;
+    this->w = num_cols;
+    this->num_rows = num_rows;
+    this->num_cols = num_cols;
+    scal_thresh = 1e-10;
+    scalar = 10;
+    set = true;
+    update_scalings();
+}
 
 void Matrix::bound_data(int row_offset, int col_offset, int h, int w)
 {
@@ -141,9 +170,6 @@ void Matrix::bound_data(int row_offset, int col_offset, int h, int w)
     this->w = w;
 }
 
-// XXX Problem: padding isn't changing the offset!
-// XXX at this point everything should be changed to do away with the
-// "offset" way of doing things
 void Matrix::print_mat(int row_offset, int col_offset, int num_rows, int num_cols)
 {
     cout << "h: " << h;
@@ -211,6 +237,27 @@ void Matrix::update_data(   float* new_data,
     update_scalings();
 }
 
+void Matrix::update_data(   double* new_data,
+                            int row_offset,
+                            int col_offset,
+                            int sub_h,
+                            int sub_w,
+                            int newd_num_rows,
+                            int newd_num_cols
+                            )
+{
+    for (int r = row_offset; r < sub_h; r++)
+        for (int c = col_offset; c < sub_w; c++)
+            if (r < num_rows && c < num_cols)
+            {
+                // XXX scalings should be updated before the cast...
+                data[r * num_cols + c] = (float)(new_data[r*newd_num_cols +
+                c]);
+                scalings[r * num_cols + c] = 0;
+            }
+    update_scalings();
+}
+
 void Matrix::pad_to(int interval)
 {
     int old_num_rows = num_rows;
@@ -270,8 +317,6 @@ void Matrix::pad_to(int interval)
     }
 }
 
-// XXX This is redundant with get_scaled and get_unscaled
-// XXX this "offset" "width" "height" system is unintuitive and complex
 float* Matrix::get_slice(int row_offset, int col_offset, int width, int height)
 {
     float* tbr = new float[width*height];
@@ -290,5 +335,37 @@ float* Matrix::get_slice(int row_offset, int col_offset, int width, int height)
                                             (double)(scalings[  r*num_cols
                                                                 + c])
                                             );
+    return tbr;
+}
+
+double* Matrix::get_slice_double(int row_offset, int col_offset, int width, int height)
+{
+    double* tbr = new double[width*height];
+/*
+    float* start = data + offset;
+    for (int r = 0; r < height; r++)
+        for (int c = 0; c < width; c++)
+            tbr[r*width + c] = start[r*num_cols + c] * pow(10.0,
+            (double)(scalings[offset + r*num_cols + c]));
+*/
+    cout << "in slice" << endl;
+    for (int r = row_offset; r < row_offset + height; r++)
+    {
+        for (int c = col_offset; c < col_offset + width; c++)
+        {
+            if (r < num_rows && c < num_cols)
+            {
+                cout << (double)data[r*num_cols + c] << " ";
+                // XXX HERE scaling messing with numbers here?
+                tbr[r*width + c] =  (double)data[r*num_cols + c]
+                                    * pow(  10.0,
+                                            (double)(scalings[  r*num_cols
+                                                                + c])
+                                            );
+            }
+        }
+        cout << endl;
+    }
+    cout << "end slice" << endl;
     return tbr;
 }

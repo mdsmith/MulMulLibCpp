@@ -22,7 +22,16 @@ protected:
                         int w,
                         int num_rows,
                         int num_cols);
+    void update_matrix( Matrix &m,
+                        double* data,
+                        int row_offset,
+                        int col_offset,
+                        int h,
+                        int w,
+                        int num_rows,
+                        int num_cols);
     void set_matrix(Matrix &m, float* data, int num_rows, int num_cols);
+    void set_matrix(Matrix &m, double* data, int num_rows, int num_cols);
     void bound_matrix(  Matrix &m,
                         int row_offset,
                         int col_offset,
@@ -37,9 +46,17 @@ protected:
 public:
     virtual const char* get_name();
     virtual void set_A(float* A, int num_rows, int num_cols);
+    virtual void set_A(double* A, int num_rows, int num_cols);
     virtual void set_B(float* B, int num_rows, int num_cols);
+    virtual void set_B(double* B, int num_rows, int num_cols);
     virtual void set_C(float* C, int num_rows, int num_cols);
+    virtual void set_C(double* C, int num_rows, int num_cols);
     virtual void update_A(  float* A,
+                            int row_offset,
+                            int col_offset,
+                            int ah,
+                            int ud);
+    virtual void update_A(  double* A,
                             int row_offset,
                             int col_offset,
                             int ah,
@@ -51,12 +68,31 @@ public:
                             int ud,
                             int num_rows,
                             int num_cols);
+    virtual void update_A(  double* A,
+                            int row_offset,
+                            int col_offset,
+                            int ah,
+                            int ud,
+                            int num_rows,
+                            int num_cols);
     virtual void update_B(  float* B,
                             int row_offset,
                             int col_offset,
                             int ud,
                             int bw);
+    virtual void update_B(  double* B,
+                            int row_offset,
+                            int col_offset,
+                            int ud,
+                            int bw);
     virtual void update_B(  float* B,
+                            int row_offset,
+                            int col_offset,
+                            int ud,
+                            int bw,
+                            int num_rows,
+                            int num_cols);
+    virtual void update_B(  double* B,
                             int row_offset,
                             int col_offset,
                             int ud,
@@ -87,6 +123,10 @@ public:
                     int col_offset,
                     int num_rows,
                     int num_cols);
+    virtual void eval_C(  int row_offset,
+                            int col_offset,
+                            int width,
+                            int height) =0;
     virtual float* get_C(   int row_offset,
                             int col_offset,
                             int width,
@@ -101,6 +141,10 @@ private:
 public:
     NaiveMuller();
     const char* get_name();
+    void eval_C(   int row_offset,
+                    int col_offset,
+                    int width,
+                    int height);
     float* get_C(   int row_offset,
                     int col_offset,
                     int width,

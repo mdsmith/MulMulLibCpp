@@ -44,6 +44,13 @@ public:
                     int w,
                     int num_rows,
                     int num_cols);
+    void set_data(  double* data,
+                    int row_offset,
+                    int col_offset,
+                    int h,
+                    int w,
+                    int num_rows,
+                    int num_cols);
     void bound_data(int row_offset, int col_offset, int h, int w);
     void print_mat(int row_offset, int col_offset, int num_rows, int num_cols);
     void print_total();
@@ -56,10 +63,19 @@ public:
                         int num_rows,
                         int num_cols
                         );
+    void update_data(   double* data,
+                        int row_offset,
+                        int col_offset,
+                        int h,
+                        int w,
+                        int num_rows,
+                        int num_cols
+                        );
     void pad_to(int interval);
     bool is_set() {return set;};
     void set_set(bool setting) {set = setting;};
     float* get_slice(int row_offset, int col_offset, int width, int height);
+    double* get_slice_double(int row_offset, int col_offset, int width, int height);
 
     // if w*h is < this->num_rows*this->num_cols it will trim to this square
     // w/upper left @offset.

@@ -51,9 +51,13 @@ void NaiveMuller::multiply()
 }
 
 
-float* NaiveMuller::get_C(int row_offset, int col_offset, int width, int height)
+void NaiveMuller::eval_C(int row_offset, int col_offset, int width, int height)
 {
     multiply();
+}
+
+float* NaiveMuller::get_C(int row_offset, int col_offset, int width, int height)
+{
     if (C.is_set())
         return C.get_slice(row_offset, col_offset, width, height);
     else

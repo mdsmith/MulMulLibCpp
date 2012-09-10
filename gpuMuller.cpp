@@ -62,7 +62,20 @@ void GPUMuller::set_A(float* A, int num_rows, int num_cols)
     Muller::set_A(A, num_rows, num_cols);
 }
 
+void GPUMuller::set_A(double* A, int num_rows, int num_cols)
+{
+    if (ctx != NULL)
+        cleanBuff = false;
+    Muller::set_A(A, num_rows, num_cols);
+}
+
 void GPUMuller::set_B(float* B, int num_rows, int num_cols)
+{
+    if (ctx != NULL)
+        cleanBuff = false;
+    Muller::set_B(B, num_rows, num_cols);
+}
+void GPUMuller::set_B(double* B, int num_rows, int num_cols)
 {
     if (ctx != NULL)
         cleanBuff = false;
@@ -75,6 +88,12 @@ void GPUMuller::set_C(float* C, int num_rows, int num_cols)
         cleanBuff = false;
     Muller::set_C(C, num_rows, num_cols);
 }
+void GPUMuller::set_C(double* C, int num_rows, int num_cols)
+{
+    if (ctx != NULL)
+        cleanBuff = false;
+    Muller::set_C(C, num_rows, num_cols);
+}
 
 void GPUMuller::update_A(float* A, int row_offset, int col_offset, int ah, int ud, int num_rows, int num_cols)
 {
@@ -82,8 +101,20 @@ void GPUMuller::update_A(float* A, int row_offset, int col_offset, int ah, int u
     if (ctx != NULL)
         a_dirt = true;
 }
+void GPUMuller::update_A(double* A, int row_offset, int col_offset, int ah, int ud, int num_rows, int num_cols)
+{
+    Muller::update_A(A, row_offset, col_offset, ah, ud, num_rows, num_cols);
+    if (ctx != NULL)
+        a_dirt = true;
+}
 
 void GPUMuller::update_B(float* B, int row_offset, int col_offset, int ud, int bw, int num_rows, int num_cols)
+{
+    Muller::update_B(B, row_offset, col_offset, ud, bw, num_rows, num_cols);
+    if (ctx != NULL)
+        b_dirt = true;
+}
+void GPUMuller::update_B(double* B, int row_offset, int col_offset, int ud, int bw, int num_rows, int num_cols)
 {
     Muller::update_B(B, row_offset, col_offset, ud, bw, num_rows, num_cols);
     if (ctx != NULL)
@@ -170,7 +201,9 @@ void GPUMuller::setup_context()
     }
 
     // prog setup
-    const char* source = load_program_source("oclKernels.cl");
+    // XXX obviously this is a problem
+    const char* source =
+    load_program_source("/Users/martinsmith/Software/hyphy/src/ocllib/oclKernels.cl");
     cl_program prog = clCreateProgramWithSource(ctx, 1, &source, NULL, &err_num);
     if (err_num != CL_SUCCESS)
     {
@@ -249,21 +282,21 @@ void GPUMuller::update_buffers()
         C.pad_to(PAD_SIZE);
     }
 
-    cout << "Post padding: " << endl;
+    //cout << "Post padding: " << endl;
     //cout << "A total: " << endl;
     //A.print_total();
-    cout << "A bound: " << endl;
-    A.print_bound();
+    //cout << "A bound: " << endl;
+    //A.print_bound();
     //print_A();
     //cout << "B total: " << endl;
     //B.print_total();
-    cout << "B bound: " << endl;
-    B.print_bound();
+    //cout << "B bound: " << endl;
+    //B.print_bound();
     //print_B();
     //cout << "C total: " << endl;
     //C.print_total();
-    cout << "C bound: " << endl;
-    C.print_bound();
+    //cout << "C bound: " << endl;
+    //C.print_bound();
     //print_C();
 /*
 */
@@ -477,6 +510,7 @@ void GPUMuller::multiply()
     cl_int temp_b_col_offset = B.get_col_offset();
     cl_int temp_c_row_offset = C.get_row_offset();
     cl_int temp_c_col_offset = C.get_col_offset();
+    cl_bool temp_overwrite = false;
 
     // set kernel args
     err_num  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &d_A);
@@ -514,6 +548,11 @@ void GPUMuller::multiply()
                                 16,
                                 sizeof(cl_int),
                                 (void *) &temp_c_col_offset);
+    err_num |= clSetKernelArg(  kernel,
+                                17,
+                                sizeof(cl_bool),
+                                (void *) &temp_overwrite);
+
     if (err_num != CL_SUCCESS)
     {
         cout << "kernel arg set fail" << endl;
@@ -525,10 +564,10 @@ void GPUMuller::multiply()
     double elapsedTime;
     gettimeofday(&t1, NULL);
 
-    cout << "Global work size: " << global_work_size[0];
-    cout << ", " << global_work_size[1] << endl;
-    cout << "Local work size: " << local_work_size[0];
-    cout << ", " << local_work_size[1] << endl;
+    //cout << "Global work size: " << global_work_size[0];
+    //cout << ", " << global_work_size[1] << endl;
+    //cout << "Local work size: " << local_work_size[0];
+    //cout << ", " << local_work_size[1] << endl;
     err_num = clEnqueueNDRangeKernel(   queue,
                                         kernel,
                                         2,
@@ -549,28 +588,38 @@ void GPUMuller::multiply()
     elapsedTime = (t2.tv_sec -t1.tv_sec) * 1000.0;
     elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000.0;
 
-    cout << "Multiplication: " << elapsedTime << " ms.\n";
+    //cout << "Multiplication: " << elapsedTime << " ms.\n";
+}
 
+void GPUMuller::read_C( int offset,
+                        int size,
+                        float* data_ptr,
+                        int* scalings_ptr)
+{
     // get results
-    /*
-    float* temp_sigs = new float[C.get_total_rows() * C.get_total_cols()];
-    for (int i = 0; i < C.get_total_rows() * C.get_total_cols(); i++)
-    //for (int i = 5; i < 10; i++)
-    {
-        temp_sigs[i] = 1.2f;
-    }
-    */
     err_num = clEnqueueReadBuffer(  queue,
                                     d_C,
                                     CL_FALSE,
-                                    0,
-                                    C.get_total_rows() * C.get_total_cols() *
-                                    sizeof(float),
-                                    C.get_scaled(),
+                                    offset,
+                                    //C.get_total_rows() * C.get_total_cols() *
+                                    //sizeof(float),
+                                    size * sizeof(float),
+                                    //C.get_scaled(),
+                                    data_ptr,
                                     //temp_sigs,
                                     0,
                                     NULL,
                                     NULL);
+
+    //cout << "C fresh off the gpu: " << endl;
+    //cout << "size " << size << endl;
+    //for (int i = 0; i < size; i++)
+    //{
+        //cout << data_ptr[offset + i] << " ";
+        //if (i % C.get_total_cols() == 0)
+            //cout << endl;
+    //}
+    //cout << endl;
     /*
     cout << "temp_sigs" << endl;
     print_float_mat(temp_sigs, 0, 0, C.get_total_rows(), C.get_total_cols(),
@@ -584,10 +633,12 @@ void GPUMuller::multiply()
     err_num = clEnqueueReadBuffer(  queue,
                                     d_Cs,
                                     CL_FALSE,
-                                    0,
-                                    C.get_total_rows() * C.get_total_cols()*
-                                    sizeof(int),
-                                    C.get_scalings(),
+                                    offset,
+                                    //C.get_total_rows() * C.get_total_cols()*
+                                    //sizeof(int),
+                                    size * sizeof(int),
+                                    //C.get_scalings(),
+                                    scalings_ptr,
                                     0,
                                     NULL,
                                     NULL);
@@ -601,7 +652,7 @@ void GPUMuller::multiply()
 }
 
 
-float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
+void GPUMuller::eval_C(int row_offset, int col_offset, int height, int width)
 {
     C.bound_data(row_offset, col_offset, height, width);
 
@@ -621,8 +672,59 @@ float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
     multiply();
     //cout << "C after multiply: " << endl;
     //print_C(0, 0, C.get_total_rows(), C.get_total_cols());
+}
+
+
+float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
+{
+    // XXX um, how about we use the actual offsets?
+    read_C( 0,
+            C.get_total_rows() * C.get_total_cols(),
+            C.get_scaled(),
+            C.get_scalings());
+
+    // XXX something is broken here if they're printing different things.
+    C.print_total();
+    cout << endl << endl << endl;
+    cout << "root conditionals: " << endl;
+    float* test = C.get_slice(row_offset, col_offset, width, height);
+    for (int i = 0; i < width*height; i++)
+    {
+        cout << test[i] << " ";
+        if (i % width == 0)
+            cout << endl;
+    }
+
+    //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
+    //<< " w: " << width << endl;
 
     return C.get_slice(row_offset, col_offset, width, height);
+}
+
+double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int width)
+{
+    // XXX um, how about we use the actual offsets?
+    read_C( 0,
+            C.get_total_rows() * C.get_total_cols(),
+            C.get_scaled(),
+            C.get_scalings());
+
+    // XXX something is broken here if they're printing different things.
+    C.print_total();
+    cout << endl << endl << endl;
+    cout << "root conditionals: " << endl;
+    double* test = C.get_slice_double(row_offset, col_offset, width, height);
+    for (int i = 0; i < width*height; i++)
+    {
+        cout << test[i] << " ";
+        if (i % width == 0)
+            cout << endl;
+    }
+
+    //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
+    //<< " w: " << width << endl;
+
+    return C.get_slice_double(row_offset, col_offset, width, height);
 }
 
 
@@ -635,12 +737,14 @@ void GPUMuller::test()
 GPUMuller::~GPUMuller()
 {
     // cleanup
+    /*
     err_num |= clReleaseMemObject(d_A);
     err_num |= clReleaseMemObject(d_B);
     err_num |= clReleaseMemObject(d_C);
     err_num |= clReleaseKernel(kernel);
     err_num |= clReleaseCommandQueue(queue);
     err_num |= clReleaseContext(ctx);
+    */
     if (err_num != CL_SUCCESS)
     {
         cout << "free fail" << endl;
