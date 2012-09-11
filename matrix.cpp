@@ -4,6 +4,22 @@
 
 //#define WOLFRAM
 
+// XXX change this such that there is a MatrixData class that stores
+// pointers to the following:
+//      original data
+//      scaled data
+//      scalings
+//      padded data
+// Such that two matrices can point to the same MatrixData class but with
+// different decorators (bounds etc)
+// XXX the above arrays would need to be kept coherent or updated before
+// use (write/accession). When you set one do you update the others like with
+// the scaling methods? Probably...
+// XXX So how would this resolve the "set_[AB](double* m...)" issue....
+//      - if you make a set method that accepts other matrices you could just
+//      point to the same MatrixData object. That is probably the least
+//      ambiguous way of going about this.
+
 #include "matrix.h"
 #include "helperFunctions.h"
 #include <math.h>
@@ -87,6 +103,7 @@ void Matrix::update_scalings()
 }
 
 
+// XXX this might return an unexpectedly padded matrix...
 float* Matrix::get_unscaled()
 {
     float* tbr = new float[num_rows*num_cols];
@@ -348,14 +365,14 @@ double* Matrix::get_slice_double(int row_offset, int col_offset, int width, int 
             tbr[r*width + c] = start[r*num_cols + c] * pow(10.0,
             (double)(scalings[offset + r*num_cols + c]));
 */
-    cout << "in slice" << endl;
+    //cout << "in slice" << endl;
     for (int r = row_offset; r < row_offset + height; r++)
     {
         for (int c = col_offset; c < col_offset + width; c++)
         {
             if (r < num_rows && c < num_cols)
             {
-                cout << (double)data[r*num_cols + c] << " ";
+                //cout << (double)data[r*num_cols + c] << " ";
                 // XXX HERE scaling messing with numbers here?
                 tbr[r*width + c] =  (double)data[r*num_cols + c]
                                     * pow(  10.0,
@@ -364,8 +381,8 @@ double* Matrix::get_slice_double(int row_offset, int col_offset, int width, int 
                                             );
             }
         }
-        cout << endl;
+        //cout << endl;
     }
-    cout << "end slice" << endl;
+    //cout << "end slice" << endl;
     return tbr;
 }

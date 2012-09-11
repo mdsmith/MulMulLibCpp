@@ -37,17 +37,21 @@ using namespace std;
 #define BRO 0 // 3 codons * 3 codons * 1 node = 1 full node skipped
 #define BCO 3 // 3 codons * 3 codons * 1 node = 1 full node skipped
 #define BW 3 // 3 codons * 1 nodes
-float* A;
-float* B;
+//float* A;
+double* A;
+//float* B;
+double* B;
 
 int update_submatrix_offset_test(Muller* m, float* golden);
 //void print_float_mat(float* m, int offset, int h, int w, int nr, int nc);
-int simulate_MLE(Muller* m, float* golden);
+int simulate_MLE(Muller* m, double* golden);
 
 int main()
 {
-    A = new float[ANR*ANC];
-    B = new float[BNR*BNC];
+    //A = new float[ANR*ANC];
+    A = new double[ANR*ANC];
+    //B = new float[BNR*BNC];
+    B = new double[BNR*BNC];
     int allpasscode = 0;
 
     srand(time(NULL));
@@ -75,21 +79,22 @@ int main()
     double elapsedTime;
     gettimeofday(&t1, NULL);
 
-    float* goldenC = naive_matrix_multiply( A,
-                                            B,
-                                            ARO,
-                                            ACO,
-                                            BRO,
-                                            BCO,
-                                            AH,
-                                            ANR,
-                                            UD,
-                                            UD,
-                                            BW, //61,
-                                            BNC
-                                            );
+    double* goldenC = naive_matrix_multiply_double( A,
+                                                    B,
+                                                    ARO,
+                                                    ACO,
+                                                    BRO,
+                                                    BCO,
+                                                    AH,
+                                                    ANR,
+                                                    UD,
+                                                    UD,
+                                                    BW, //61,
+                                                    BNC
+                                                    );
     cout << "Golden C: " << endl;
-    print_float_mat(goldenC, 0, 0, AH, BW, AH, BW);
+    //print_float_mat(goldenC, 0, 0, AH, BW, AH, BW);
+    print_double_mat(goldenC, 0, 0, AH, BW, AH, BW);
 /*
     // multiple multiply!
     goldenC = naive_matrix_multiply(goldenC,A, DIM1, DIM1, DIM2);
@@ -141,7 +146,7 @@ int main()
 }
 
 
-int simulate_MLE(Muller* m, float* golden)
+int simulate_MLE(Muller* m, double* golden)
 {
     //cout << "A pre: " << endl;
     //print_float_mat(A, 0, 0, ANR, ANC, ANR, ANC);
@@ -158,6 +163,7 @@ int simulate_MLE(Muller* m, float* golden)
     cout << "B bound: " << endl;
     m->print_B(BRO, BCO, UD, BW);
     m->set_overwrite(true);
+    m->set_C(A, ANR, ANC);
     float* mulC = m->get_C(0, 0, AH, BW);
     cout << "C results: " << endl;
     print_float_mat(mulC, 0, 0, AH, BW, AH, BW);

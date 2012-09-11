@@ -21,7 +21,6 @@ using namespace std;
 #define SCALAR 10
 #define SCAL_THRESH 1e-10
 
-//bool overwrite;
 bool evaluated;
 bool cleanBuff;
 bool a_dirt;
@@ -385,16 +384,19 @@ void GPUMuller::update_buffers()
     }
     if (C.get_scaled() == A.get_scaled())
     {
+        cout << "A is the same as C" << endl;
         d_C = d_A;
         d_Cs = d_As;
     }
     else if (C.get_scaled() == B.get_scaled())
     {
+        cout << "B is the same as C" << endl;
         d_C = d_B;
         d_Cs = d_Bs;
     }
     else
     {
+        cout << "C is different" << endl;
         d_C = clCreateBuffer(   ctx,
                                 CL_MEM_READ_WRITE,
                                 A.get_total_rows() * B.get_total_cols() *
@@ -608,7 +610,7 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
     // get results
     err_num = clEnqueueReadBuffer(  queue,
                                     d_C,
-                                    CL_FALSE,
+                                    CL_TRUE,
                                     offset,
                                     //C.get_total_rows() * C.get_total_cols() *
                                     //sizeof(float),
@@ -620,7 +622,6 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
                                     NULL,
                                     NULL);
 
-    /*
     cout << "C fresh off the gpu: " << endl;
     cout << "size " << size << endl;
     for (int i = 0; i < size; i++)
@@ -630,6 +631,7 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
         cout << data_ptr[offset + i] << " ";
     }
     cout << endl;
+    /*
     cout << "temp_sigs" << endl;
     print_float_mat(temp_sigs, 0, 0, C.get_total_rows(), C.get_total_cols(),
                             C.get_total_rows(), C.get_total_cols());

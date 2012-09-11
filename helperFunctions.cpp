@@ -104,3 +104,28 @@ void print_float_mat(float* m, int row_offset, int col_offset, int h, int w, int
     }
     cout << "}" << endl;
 }
+
+
+void print_double_mat(double* m, int row_offset, int col_offset, int h, int w, int nr, int nc)
+{
+    cout << "{";
+    for (int r = row_offset; r < row_offset + h; r++)
+    {
+        cout << "{";
+        for (int c = col_offset; c < col_offset + w; c++)
+        {
+            if (c > col_offset && c < col_offset + w)
+                cout << ",";
+            printf("%4.4f", m[r*nc + c]);
+        }
+        if (r < row_offset + h-1)
+#if defined WOLFRAM
+            cout << "},";
+#else
+            cout << "}," << endl;
+#endif
+        else
+            cout << "}";
+    }
+    cout << "}" << endl;
+}

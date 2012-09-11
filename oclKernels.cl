@@ -168,10 +168,13 @@ __kernel void matMul(
     int c = wB * BLOCK_SIZE * by + BLOCK_SIZE * bx;
     if (in_frame)
     {
+        C[c_offset + wB*gy + gx] = a_row_offset; // XXX temp
+        /*
         if (overwrite)
             C[c_offset + wB*gy + gx] = Csub_sig;
         else
             C[c_offset + wB*gy + gx] *= Csub_sig;
+        */
         Cscalings[c_offset + wB * gy + gx] = Csub_exp;
     }
 }
