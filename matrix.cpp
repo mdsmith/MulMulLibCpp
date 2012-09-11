@@ -29,6 +29,7 @@ using namespace std;
 
 Matrix::Matrix()
 {
+    orig_id = 0;
     set = false;
     data = NULL;
     scalings = NULL;
@@ -55,6 +56,11 @@ Matrix::~Matrix()
     }
     cout << "...complete" << endl;
 */
+}
+
+long Matrix::get_id()
+{
+    return (long)orig_id;
 }
 
 
@@ -134,6 +140,7 @@ void Matrix::set_data(  float* data,
                         int num_cols
                         )
 {
+    orig_id = (size_t) data;
     if (this->data != NULL) delete[] this->data;
     if (this->scalings != NULL) delete[] this->scalings;
     //cout << " ...done!" << endl;
@@ -158,6 +165,7 @@ void Matrix::set_data(  double* data,
                         int num_cols
                         )
 {
+    orig_id = (size_t) data;
     if (this->data != NULL) delete[] this->data;
     if (this->scalings != NULL) delete[] this->scalings;
     //cout << " ...done!" << endl;

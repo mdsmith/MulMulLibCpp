@@ -1,5 +1,6 @@
 #ifndef MATRIX_H
 #define MATRIX_H
+#include <cstring>
 class Matrix
 {
 private:
@@ -14,9 +15,11 @@ private:
     int row_offset;
     int num_rows;
     int num_cols;
+    size_t orig_id;
 public:
     Matrix();
     ~Matrix();
+    long get_id();
     void update_scalings();
     float* get_unscaled();
     double* get_unscaled_double();

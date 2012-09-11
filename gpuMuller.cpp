@@ -689,6 +689,9 @@ void GPUMuller::eval_C(int row_offset, int col_offset, int height, int width)
 
 float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
 {
+    cout << "A id is: " << A.get_id() << endl;
+    cout << "B id is: " << B.get_id() << endl;
+    cout << "C id is: " << C.get_id() << endl;
     if (!evaluated)
     {
         eval_C(row_offset, col_offset, height, width);
