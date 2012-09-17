@@ -151,7 +151,7 @@ void Muller::update_matrix( Matrix &m,
                             int num_cols
                             )
 {
-    m.update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
+    m.get_data().update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
     /*
     float* start = m.data + offset;
     int sr = offset / m.num_cols;
@@ -172,14 +172,48 @@ void Muller::update_matrix( Matrix &m,
                             int num_cols
                             )
 {
-    m.update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
+    m.get_data().update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
 }
 
 
 // Set an entirely new matrix
 void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
 {
-    m.set_data(data, 0, 0, num_rows, num_cols, num_rows, num_cols);
+    long orig_id = (long) data;
+    bool md_set = false;
+    if (A.is_set() && !md_set)
+    {
+        if (A.get_data().get_id() == orig_id)
+        {
+            m.set_data(A.get_data());
+            md_set = true;
+        }
+    }
+    if (B.is_set() && !md_set)
+    {
+        if (B.get_data().get_id() == orig_id)
+        {
+            m.set_data(B.get_data());
+            md_set = true;
+        }
+    }
+    if (C.is_set() && !md_set)
+    {
+        if (C.get_data().get_id() == orig_id)
+        {
+            m.set_data(C.get_data());
+            md_set = true;
+        }
+    }
+    if (!md_set)
+    {
+        MatrixData md;
+        md.set_data(data, num_rows, num_cols);
+        m.set_data(md);
+        md_set = true;
+    }
+
+    //m.set_data(data, 0, 0, num_rows, num_cols, num_rows, num_cols);
     //cout << "done setting data in Muller!" << endl;
     /*
     m.data = data;
@@ -195,7 +229,40 @@ void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
 }
 void Muller::set_matrix(Matrix &m, double* data, int num_rows, int num_cols)
 {
-    m.set_data(data, 0, 0, num_rows, num_cols, num_rows, num_cols);
+    long orig_id = (long)data;
+    bool md_set = false;
+    if (A.is_set() && !md_set)
+    {
+        if (A.get_data().get_id() == orig_id)
+        {
+            m.set_data(A.get_data());
+            md_set = true;
+        }
+    }
+    if (B.is_set() && !md_set)
+    {
+        if (B.get_data().get_id() == orig_id)
+        {
+            m.set_data(B.get_data());
+            md_set = true;
+        }
+    }
+    if (C.is_set() && !md_set)
+    {
+        if (C.get_data().get_id() == orig_id)
+        {
+            m.set_data(C.get_data());
+            md_set = true;
+        }
+    }
+    if (!md_set)
+    {
+        MatrixData md;
+        md.set_data(data, num_rows, num_cols);
+        m.set_data(md);
+        md_set = true;
+    }
+    //m.set_data(data, 0, 0, num_rows, num_cols, num_rows, num_cols);
 }
 
 
@@ -212,36 +279,40 @@ void Muller::bound_matrix(Matrix &m, int row_offset, int col_offset, int h, int 
 
 void Muller::print_A()
 {
-    A.print_mat(A.get_row_offset(), A.get_col_offset(), A.get_bound_rows(), A.get_bound_cols());
+    //A.print_mat(A.get_row_offset(), A.get_col_offset(), A.get_bound_rows(), A.get_bound_cols());
+    A.print_bound();
 }
 
 void Muller::print_A(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    A.print_mat(row_offset, col_offset, num_rows, num_cols);
+    A.get_data().print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 void Muller::print_B()
 {
-    B.print_mat(B.get_row_offset(), B.get_col_offset(), B.get_bound_rows(), B.get_bound_cols());
+    //B.print_mat(B.get_row_offset(), B.get_col_offset(), B.get_bound_rows(), B.get_bound_cols());
+    B.print_bound();
 }
 
 void Muller::print_B(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    B.print_mat(row_offset, col_offset, num_rows, num_cols);
+    B.get_data().print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 void Muller::print_C()
 {
-    C.print_mat(C.get_row_offset(), C.get_col_offset(), C.get_bound_rows(), C.get_bound_cols());
+    //C.print_mat(C.get_row_offset(), C.get_col_offset(), C.get_bound_rows(), C.get_bound_cols());
+    C.print_bound();
 }
 
 void Muller::print_C(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    C.print_mat(row_offset, col_offset, num_rows, num_cols);
+    C.get_data().print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 
 // Print a matrix
+/*
 void Muller::print_mat( Matrix m,
                         int row_offset,
                         int col_offset,
@@ -250,7 +321,7 @@ void Muller::print_mat( Matrix m,
                         )
 {
     m.print_mat(row_offset, col_offset, num_rows, num_cols);
-    /*
+    /8
     cout << "m.h: " << m.h;
     cout << " m.w: " << m.w;
     cout << " m.offset: " << m.offset;
@@ -273,9 +344,10 @@ void Muller::print_mat( Matrix m,
             cout << "}";
     }
     cout << "}" << endl;
-    */
+    8/
 
 }
+*/
 
 // Made redundant with Matrix moving to a class
 // Marked for removal 8/23/12

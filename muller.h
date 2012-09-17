@@ -38,11 +38,13 @@ protected:
                         int col_offset,
                         int h,
                         int w);
+    /*
     void print_mat( Matrix m,
                     int row_offset,
                     int col_offset,
                     int num_rows,
                     int num_cols);
+    */
     virtual void multiply() =0;
 public:
     virtual const char* get_name();

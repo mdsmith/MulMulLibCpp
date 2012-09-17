@@ -21,7 +21,6 @@
 //      ambiguous way of going about this.
 
 #include "matrix.h"
-#include "helperFunctions.h"
 #include <math.h>
 #include <stdio.h>
 #include <iostream>
@@ -29,10 +28,10 @@ using namespace std;
 
 Matrix::Matrix()
 {
-    orig_id = 0;
+    //orig_id = 0;
     set = false;
-    data = NULL;
-    scalings = NULL;
+    //data = NULL;
+    //scalings = NULL;
 }
 
 
@@ -58,12 +57,36 @@ Matrix::~Matrix()
 */
 }
 
+/*
 long Matrix::get_id()
 {
     return (long)orig_id;
 }
+*/
 
 
+MatrixData Matrix::get_data()
+{
+    return m_data;
+}
+
+
+void Matrix::bound_data(int row_offset, int col_offset, int h, int w)
+{
+    this->row_offset = row_offset;
+    this->col_offset = col_offset;
+    this->h = h;
+    this->w = w;
+}
+
+
+void Matrix::print_bound()
+{
+    m_data.print_mat(row_offset, col_offset, h, w);
+}
+
+
+/*
 void Matrix::update_scalings()
 {
     //cout << "updating scalings..." << endl;
@@ -130,7 +153,15 @@ double* Matrix::get_unscaled_double()
     }
     return tbr;
 }
+*/
 
+void Matrix::set_data(MatrixData md)
+{
+    m_data = md;
+    set = true;
+}
+
+/*
 void Matrix::set_data(  float* data,
                         int row_offset,
                         int col_offset,
@@ -140,6 +171,8 @@ void Matrix::set_data(  float* data,
                         int num_cols
                         )
 {
+    // XXX make this initialize m_data if it doesn't exist in another matrix
+    // already.
     orig_id = (size_t) data;
     if (this->data != NULL) delete[] this->data;
     if (this->scalings != NULL) delete[] this->scalings;
@@ -165,6 +198,9 @@ void Matrix::set_data(  double* data,
                         int num_cols
                         )
 {
+    // XXX make this initialize m_data if it doesn't exist in another matrix
+    // already.
+    m_data.data_double = data;
     orig_id = (size_t) data;
     if (this->data != NULL) delete[] this->data;
     if (this->scalings != NULL) delete[] this->scalings;
@@ -186,15 +222,10 @@ void Matrix::set_data(  double* data,
     set = true;
     update_scalings();
 }
+*/
 
-void Matrix::bound_data(int row_offset, int col_offset, int h, int w)
-{
-    this->row_offset = row_offset;
-    this->col_offset = col_offset;
-    this->h = h;
-    this->w = w;
-}
 
+/*
 void Matrix::print_mat(int row_offset, int col_offset, int num_rows, int num_cols)
 {
     cout << "h: " << h;
@@ -234,12 +265,10 @@ void Matrix::print_total()
 {
     print_mat(0, 0, num_rows, num_cols);
 }
+*/
 
-void Matrix::print_bound()
-{
-    print_mat(row_offset, col_offset, h, w);
-}
 
+/*
 // replace the portion of memory specified by the row and column offsets with
 // data from float* data, where the size of the substitution is given by h
 // and w and the size of data is given by num_rows and num_cols
@@ -282,7 +311,9 @@ void Matrix::update_data(   double* new_data,
             }
     update_scalings();
 }
+*/
 
+/*
 void Matrix::pad_to(int interval)
 {
     int old_num_rows = num_rows;
@@ -304,14 +335,12 @@ void Matrix::pad_to(int interval)
                     newData[r * num_cols + c] = 0.0f;
             }
         }
-        /*
-        for (int i = 0; i < old_num_rows; i++)
-        {
-            memcpy( newData + i * num_cols,
-                    data + i * old_num_cols,
-                    old_num_cols);
-        }
-        */
+        //for (int i = 0; i < old_num_rows; i++)
+        //{
+            //memcpy( newData + i * num_cols,
+                    //data + i * old_num_cols,
+                    //old_num_cols);
+        //}
         delete[] data;
         data = newData;
     }
@@ -329,29 +358,27 @@ void Matrix::pad_to(int interval)
                     newScalings[r * num_cols + c] = 0;
             }
         }
-        /*
-        for (int i = 0; i < old_num_rows; i++)
-        {
-            memcpy( newScalings + i * num_cols,
-                    scalings + i * old_num_cols,
-                    old_num_cols);
-        }
-        */
+        //for (int i = 0; i < old_num_rows; i++)
+        //{
+            //memcpy( newScalings + i * num_cols,
+                    //scalings + i * old_num_cols,
+                    //old_num_cols);
+        //}
         delete[] scalings;
         scalings = newScalings;
     }
 }
+*/
 
+/*
 float* Matrix::get_slice(int row_offset, int col_offset, int width, int height)
 {
     float* tbr = new float[width*height];
-/*
-    float* start = data + offset;
-    for (int r = 0; r < height; r++)
-        for (int c = 0; c < width; c++)
-            tbr[r*width + c] = start[r*num_cols + c] * pow(10.0,
-            (double)(scalings[offset + r*num_cols + c]));
-*/
+    //float* start = data + offset;
+    //for (int r = 0; r < height; r++)
+        //for (int c = 0; c < width; c++)
+            //tbr[r*width + c] = start[r*num_cols + c] * pow(10.0,
+            //(double)(scalings[offset + r*num_cols + c]));
     for (int r = row_offset; r < row_offset + height; r++)
         for (int c = col_offset; c < col_offset + width; c++)
             if (r < num_rows && c < num_cols)
@@ -366,13 +393,11 @@ float* Matrix::get_slice(int row_offset, int col_offset, int width, int height)
 double* Matrix::get_slice_double(int row_offset, int col_offset, int width, int height)
 {
     double* tbr = new double[width*height];
-/*
-    float* start = data + offset;
-    for (int r = 0; r < height; r++)
-        for (int c = 0; c < width; c++)
-            tbr[r*width + c] = start[r*num_cols + c] * pow(10.0,
-            (double)(scalings[offset + r*num_cols + c]));
-*/
+    //float* start = data + offset;
+    //for (int r = 0; r < height; r++)
+        //for (int c = 0; c < width; c++)
+            //tbr[r*width + c] = start[r*num_cols + c] * pow(10.0,
+            //(double)(scalings[offset + r*num_cols + c]));
     //cout << "in slice" << endl;
     for (int r = row_offset; r < row_offset + height; r++)
     {
@@ -394,3 +419,4 @@ double* Matrix::get_slice_double(int row_offset, int col_offset, int width, int 
     //cout << "end slice" << endl;
     return tbr;
 }
+*/

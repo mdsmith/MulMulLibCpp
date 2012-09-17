@@ -230,59 +230,73 @@ void GPUMuller::setup_context()
         exit(err_num);
     }
 
-    A.update_scalings();
-    B.update_scalings();
-    C.update_scalings();
+    A.get_data().check_scalings();
+    B.get_data().check_scalings();
+    C.get_data().check_scalings();
     update_buffers();
 }
 
 void GPUMuller::update_buffers()
 {
+    // XXX This is most likely all incorrect...
     // array rounding
-    if (A.get_scaled() == B.get_scaled() && A.get_scaled() == C.get_scaled())
+    //if (    A.get_data().get_scaled_float() == B.get_data().get_scaled_float()
+        //&&  A.get_data().get_scaled_float() == C.get_data().get_scaled_float())
+    if (    A.get_data().get_id() == B.get_data().get_id()
+        &&  A.get_data().get_id() == C.get_data().get_id())
     {
-        A.pad_to(PAD_SIZE);
-        B.set_data_and_scalings(A.get_scaled(),
-                                A.get_scalings(),
-                                A.get_total_rows(),
-                                A.get_total_cols());
-        C.set_data_and_scalings(A.get_scaled(),
-                                A.get_scalings(),
-                                A.get_total_rows(),
-                                A.get_total_cols());
+        A.get_data().pad_to(PAD_SIZE);
+        // The other matrices use the same MatrixData, so you only have to
+        // pad one matrice's MatrixData
+        /*
+        B.get_data().set_data_and_scalings(A.get_data().get_scaled_float(),
+                                A.get_data().get_scalings(),
+                                A.get_data().get_total_rows(),
+                                A.get_data().get_total_cols());
+        C.get_data().set_data_and_scalings(A.get_data().get_scaled_float(),
+                                A.get_data().get_scalings(),
+                                A.get_data().get_total_rows(),
+                                A.get_data().get_total_cols());
+        */
     }
-    else if (B.get_scaled() == A.get_scaled())
+    else if (B.get_data().get_scaled_float() == A.get_data().get_scaled_float())
     {
-        A.pad_to(PAD_SIZE);
-        B.set_data_and_scalings(A.get_scaled(),
-                                A.get_scalings(),
-                                A.get_total_rows(),
-                                A.get_total_cols());
-        C.pad_to(PAD_SIZE);
+        A.get_data().pad_to(PAD_SIZE);
+        /*
+        B.get_data().set_data_and_scalings(A.get_data().get_scaled_float(),
+                                A.get_data().get_scalings(),
+                                A.get_data().get_total_rows(),
+                                A.get_data().get_total_cols());
+        */
+        C.get_data().pad_to(PAD_SIZE);
     }
-    else if (C.get_scaled() == B.get_scaled())
+    else if (C.get_data().get_scaled_float() == B.get_data().get_scaled_float())
     {
-        A.pad_to(PAD_SIZE);
-        B.pad_to(PAD_SIZE);
-        C.set_data_and_scalings(B.get_scaled(),
-                                B.get_scalings(),
-                                B.get_total_rows(),
-                                B.get_total_cols());
+        A.get_data().pad_to(PAD_SIZE);
+        B.get_data().pad_to(PAD_SIZE);
+        /*
+        C.get_data().set_data_and_scalings(B.get_data().get_scaled_float(),
+                                B.get_data().get_scalings(),
+                                B.get_data().get_total_rows(),
+                                B.get_data().get_total_cols());
+        */
     }
-    else if (C.get_scaled() == A.get_scaled())
+    else if (C.get_data().get_scaled_float() == A.get_data().get_scaled_float())
     {
-        A.pad_to(PAD_SIZE);
-        B.pad_to(PAD_SIZE);
-        C.set_data_and_scalings(A.get_scaled(),
-                                A.get_scalings(),
-                                A.get_total_rows(),
-                                A.get_total_cols());
+        A.get_data().pad_to(PAD_SIZE);
+        B.get_data().pad_to(PAD_SIZE);
+        /*
+        C.get_data().set_data_and_scalings(A.get_data().get_scaled_float(),
+                                A.get_data().get_scalings(),
+                                A.get_data().get_total_rows(),
+                                A.get_data().get_total_cols());
+        */
     }
     else
     {
-        A.pad_to(PAD_SIZE);
-        B.pad_to(PAD_SIZE);
-        C.pad_to(PAD_SIZE);
+        A.get_data().pad_to(PAD_SIZE);
+        B.get_data().pad_to(PAD_SIZE);
+        C.get_data().pad_to(PAD_SIZE);
     }
 
     //cout << "Post padding: " << endl;
@@ -322,13 +336,13 @@ void GPUMuller::update_buffers()
     }
     d_A = clCreateBuffer(   ctx,
                             CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                            A.get_total_rows() * A.get_total_cols() * sizeof(float),
-                            A.get_scaled(),
+                            A.get_data().get_total_rows() * A.get_data().get_total_cols() * sizeof(float),
+                            A.get_data().get_scaled_float(),
                             &err_num);
     d_As = clCreateBuffer(   ctx,
                             CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                            A.get_total_rows() * A.get_total_cols() * sizeof(int),
-                            A.get_scalings(),
+                            A.get_data().get_total_rows() * A.get_data().get_total_cols() * sizeof(int),
+                            A.get_data().get_scalings(),
                             &err_num);
     if (err_num != CL_SUCCESS)
     {
@@ -346,7 +360,7 @@ void GPUMuller::update_buffers()
             exit(err_num);
         }
     }
-    if (B.get_scaled() == A.get_scaled())
+    if (B.get_data().get_scaled_float() == A.get_data().get_scaled_float())
     {
         d_B = d_A;
         d_Bs = d_As;
@@ -355,15 +369,15 @@ void GPUMuller::update_buffers()
     {
         d_B = clCreateBuffer(   ctx,
                                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                B.get_total_rows() * B.get_total_cols() *
+                                B.get_data().get_total_rows() * B.get_data().get_total_cols() *
                                 sizeof(float),
-                                B.get_scaled(),
+                                B.get_data().get_scaled_float(),
                                 &err_num);
         d_Bs = clCreateBuffer(  ctx,
                                 CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-                                B.get_total_rows() * B.get_total_cols() *
+                                B.get_data().get_total_rows() * B.get_data().get_total_cols() *
                                 sizeof(int),
-                                B.get_scalings(),
+                                B.get_data().get_scalings(),
                                 &err_num);
     }
     if (err_num != CL_SUCCESS)
@@ -382,13 +396,13 @@ void GPUMuller::update_buffers()
             exit(err_num);
         }
     }
-    if (C.get_scaled() == A.get_scaled())
+    if (C.get_data().get_scaled_float() == A.get_data().get_scaled_float())
     {
         cout << "A is the same as C" << endl;
         d_C = d_A;
         d_Cs = d_As;
     }
-    else if (C.get_scaled() == B.get_scaled())
+    else if (C.get_data().get_scaled_float() == B.get_data().get_scaled_float())
     {
         cout << "B is the same as C" << endl;
         d_C = d_B;
@@ -399,13 +413,13 @@ void GPUMuller::update_buffers()
         cout << "C is different" << endl;
         d_C = clCreateBuffer(   ctx,
                                 CL_MEM_READ_WRITE,
-                                A.get_total_rows() * B.get_total_cols() *
+                                A.get_data().get_total_rows() * B.get_data().get_total_cols() *
                                 sizeof(float),
                                 NULL,
                                 &err_num);
         d_Cs = clCreateBuffer(   ctx,
                                 CL_MEM_READ_WRITE,
-                                A.get_total_rows() * B.get_total_cols() *
+                                A.get_data().get_total_rows() * B.get_data().get_total_cols() *
                                 sizeof(int),
                                 NULL,
                                 &err_num);
@@ -432,8 +446,8 @@ void GPUMuller::check_buffers()
                                         d_A,
                                         CL_FALSE,
                                         0,
-                                        sizeof(cl_float)*A.get_total_rows()*A.get_total_cols(),
-                                        A.get_scaled(),
+                                        sizeof(cl_float)*A.get_data().get_total_rows()*A.get_data().get_total_cols(),
+                                        A.get_data().get_scaled_float(),
                                         0,
                                         NULL,
                                         NULL
@@ -442,8 +456,8 @@ void GPUMuller::check_buffers()
                                         d_As,
                                         CL_FALSE,
                                         0,
-                                        sizeof(int)*A.get_total_rows()*A.get_total_cols(),
-                                        A.get_scalings(),
+                                        sizeof(int)*A.get_data().get_total_rows()*A.get_data().get_total_cols(),
+                                        A.get_data().get_scalings(),
                                         0,
                                         NULL,
                                         NULL
@@ -455,8 +469,8 @@ void GPUMuller::check_buffers()
                                         d_B,
                                         CL_FALSE,
                                         0,
-                                        sizeof(cl_float)*B.get_total_rows()*B.get_total_cols(),
-                                        B.get_scaled(),
+                                        sizeof(cl_float)*B.get_data().get_total_rows()*B.get_data().get_total_cols(),
+                                        B.get_data().get_scaled_float(),
                                         0,
                                         NULL,
                                         NULL
@@ -465,8 +479,8 @@ void GPUMuller::check_buffers()
                                         d_Bs,
                                         CL_FALSE,
                                         0,
-                                        sizeof(int)*B.get_total_rows()*B.get_total_cols(),
-                                        B.get_scalings(),
+                                        sizeof(int)*B.get_data().get_total_rows()*B.get_data().get_total_cols(),
+                                        B.get_data().get_scalings(),
                                         0,
                                         NULL,
                                         NULL
@@ -478,8 +492,8 @@ void GPUMuller::check_buffers()
                                         d_C,
                                         CL_FALSE,
                                         0,
-                                        sizeof(cl_float)*C.get_total_rows()*C.get_total_cols(),
-                                        C.get_scaled(),
+                                        sizeof(cl_float)*C.get_data().get_total_rows()*C.get_data().get_total_cols(),
+                                        C.get_data().get_scaled_float(),
                                         0,
                                         NULL,
                                         NULL
@@ -488,8 +502,8 @@ void GPUMuller::check_buffers()
                                         d_Cs,
                                         CL_FALSE,
                                         0,
-                                        sizeof(int)*C.get_total_rows()*C.get_total_cols(),
-                                        C.get_scalings(),
+                                        sizeof(int)*C.get_data().get_total_rows()*C.get_data().get_total_cols(),
+                                        C.get_data().get_scalings(),
                                         0,
                                         NULL,
                                         NULL
@@ -507,9 +521,9 @@ void GPUMuller::multiply()
 {
     cl_int temp_ah = A.get_bound_rows();
     cl_int temp_bw = B.get_bound_cols();
-    cl_int temp_bw_round = B.get_total_cols();
+    cl_int temp_bw_round = B.get_data().get_total_cols();
     cl_int temp_ud = A.get_bound_cols();
-    cl_int temp_ud_round = A.get_total_cols();
+    cl_int temp_ud_round = A.get_data().get_total_cols();
     cl_int temp_a_row_offset = A.get_row_offset();
     cl_int temp_a_col_offset = A.get_col_offset();
     cl_int temp_b_row_offset = B.get_row_offset();
@@ -626,7 +640,7 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
     cout << "size " << size << endl;
     for (int i = 0; i < size; i++)
     {
-        if (i % C.get_total_cols() == 0)
+        if (i % C.get_data().get_total_cols() == 0)
             cout << endl;
         cout << data_ptr[offset + i] << " ";
     }
@@ -689,18 +703,18 @@ void GPUMuller::eval_C(int row_offset, int col_offset, int height, int width)
 
 float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
 {
-    cout << "A id is: " << A.get_id() << endl;
-    cout << "B id is: " << B.get_id() << endl;
-    cout << "C id is: " << C.get_id() << endl;
+    cout << "A id is: " << A.get_data().get_id() << endl;
+    cout << "B id is: " << B.get_data().get_id() << endl;
+    cout << "C id is: " << C.get_data().get_id() << endl;
     if (!evaluated)
     {
         eval_C(row_offset, col_offset, height, width);
     }
     // XXX um, how about we use the actual offsets?
     read_C( 0,
-            C.get_total_rows() * C.get_total_cols(),
-            C.get_scaled(),
-            C.get_scalings());
+            C.get_data().get_total_rows() * C.get_data().get_total_cols(),
+            C.get_data().get_scaled_float(),
+            C.get_data().get_scalings());
 
     // XXX something is broken here if they're printing different things.
     /*
@@ -719,7 +733,7 @@ float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
     //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
     //<< " w: " << width << endl;
 
-    return C.get_slice(row_offset, col_offset, width, height);
+    return C.get_data().get_slice(row_offset, col_offset, width, height);
 }
 
 double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int width)
@@ -731,9 +745,9 @@ double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int 
     }
 
     read_C( 0,
-            C.get_total_rows() * C.get_total_cols(),
-            C.get_scaled(),
-            C.get_scalings());
+            C.get_data().get_total_rows() * C.get_data().get_total_cols(),
+            C.get_data().get_scaled_float(),
+            C.get_data().get_scalings());
 
     // XXX something is broken here if they're printing different things.
     /*
@@ -752,7 +766,7 @@ double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int 
     //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
     //<< " w: " << width << endl;
 
-    return C.get_slice_double(row_offset, col_offset, width, height);
+    return C.get_data().get_slice_double(row_offset, col_offset, width, height);
 }
 
 
