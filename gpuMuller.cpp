@@ -283,11 +283,11 @@ void GPUMuller::update_buffers()
     }
     else if (C.get_data()->get_scaled_float() == A.get_data()->get_scaled_float())
     {
-        cout << "A pre: " << A.get_data()->get_total_rows() << endl;
-        cout << "C pre: " << C.get_data()->get_total_rows() << endl;
+        //cout << "A pre: " << A.get_data()->get_total_rows() << endl;
+        //cout << "C pre: " << C.get_data()->get_total_rows() << endl;
         A.get_data()->pad_to(PAD_SIZE);
-        cout << "A post: " << A.get_data()->get_total_rows() << endl;
-        cout << "C post: " << C.get_data()->get_total_rows() << endl;
+        //cout << "A post: " << A.get_data()->get_total_rows() << endl;
+        //cout << "C post: " << C.get_data()->get_total_rows() << endl;
         B.get_data()->pad_to(PAD_SIZE);
         /*
         C.get_data()->set_data_and_scalings(A.get_data()->get_scaled_float(),
@@ -641,6 +641,7 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
                                     NULL,
                                     NULL);
 
+/*
     cout << "C fresh off the gpu: " << endl;
     cout << "size " << size << endl;
     for (int i = 0; i < size; i++)
@@ -650,11 +651,12 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
         cout << data_ptr[offset + i] << " ";
     }
     cout << endl;
-    /*
+*/
+/*
     cout << "temp_sigs" << endl;
     print_float_mat(temp_sigs, 0, 0, C.get_total_rows(), C.get_total_cols(),
                             C.get_total_rows(), C.get_total_cols());
-    */
+*/
     if (err_num != CL_SUCCESS)
     {
         cout << "significand read fail" << endl;
@@ -708,9 +710,9 @@ void GPUMuller::eval_C(int row_offset, int col_offset, int height, int width)
 
 float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
 {
-    cout << "A id is: " << A.get_data()->get_id() << endl;
-    cout << "B id is: " << B.get_data()->get_id() << endl;
-    cout << "C id is: " << C.get_data()->get_id() << endl;
+    //cout << "A id is: " << A.get_data()->get_id() << endl;
+    //cout << "B id is: " << B.get_data()->get_id() << endl;
+    //cout << "C id is: " << C.get_data()->get_id() << endl;
     if (!evaluated)
     {
         eval_C(row_offset, col_offset, height, width);
