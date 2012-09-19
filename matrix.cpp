@@ -65,7 +65,7 @@ long Matrix::get_id()
 */
 
 
-MatrixData Matrix::get_data()
+MatrixData* Matrix::get_data()
 {
     return m_data;
 }
@@ -82,7 +82,13 @@ void Matrix::bound_data(int row_offset, int col_offset, int h, int w)
 
 void Matrix::print_bound()
 {
-    m_data.print_mat(row_offset, col_offset, h, w);
+    m_data->print_mat(row_offset, col_offset, h, w);
+}
+
+void Matrix::set_data(MatrixData* md)
+{
+    m_data = md;
+    set = true;
 }
 
 
@@ -154,12 +160,6 @@ double* Matrix::get_unscaled_double()
     return tbr;
 }
 */
-
-void Matrix::set_data(MatrixData md)
-{
-    m_data = md;
-    set = true;
-}
 
 /*
 void Matrix::set_data(  float* data,

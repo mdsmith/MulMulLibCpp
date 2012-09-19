@@ -6,7 +6,7 @@ class Matrix
 {
 private:
     bool set;
-    MatrixData m_data;
+    MatrixData* m_data;
     int w;
     int h;
     int col_offset;
@@ -21,7 +21,7 @@ private:
 public:
     Matrix();
     ~Matrix();
-    MatrixData get_data();
+    MatrixData* get_data();
     int get_bound_cols() {return w;};
     int get_bound_rows() {return h;};
     int get_row_offset() {return row_offset;};
@@ -49,7 +49,7 @@ public:
     */
     //int get_total_cols() {return num_cols;};
     //int get_total_rows() {return num_rows;};
-    void set_data( MatrixData md);
+    void set_data( MatrixData* md);
     /*
     void set_data(  float* data,
                     int row_offset,

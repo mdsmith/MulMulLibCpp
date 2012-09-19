@@ -4,7 +4,9 @@ ifeq ($(UNAME), Linux)
 CXX = g++
 endif
 
-all_flags =
+flags = -O3
+# omp and clang don't get along
+all_flags = -O3 -Wall -Werror -Wno-unknown-pragmas
 
 .PHONY: all clean
 all: mul ocl
@@ -16,7 +18,7 @@ naive_objs = naiveFunctions.o naiveMuller.o
 ###### Core Test ######
 
 mul_objs = $(naive_objs) $(core_objs)
-mul: flags += -O3
+# mul: flags += -O3
 
 multest.o: multest.cpp
 	$(CXX) $(flags) -c -o multest.o multest.cpp

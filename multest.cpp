@@ -153,7 +153,9 @@ int simulate_MLE(Muller* m, double* golden)
     m->set_A(A, ANR, ANC);
     cout << "A set: " << endl;
     m->print_A(0, 0, ANR, ANC);
+    cout << "Setting B...";
     m->set_B(B, BNR, BNC);
+    cout << "done!" << endl;
     cout << "B set: " << endl;
     m->print_B(0, 0, BNR, BNC);
     m->bound_A(ARO, ACO, AH, UD);

@@ -74,8 +74,8 @@ public:
         this->num_cols = num_cols;
     };
 
-    int get_total_cols() {return num_cols;};
-    int get_total_rows() {return num_rows;};
+    int get_total_cols() const {return num_cols;};
+    int get_total_rows() const {return num_rows;};
 
     void set_data(  float* data,
                     int num_rows,

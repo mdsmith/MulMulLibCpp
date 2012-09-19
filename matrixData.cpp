@@ -10,6 +10,8 @@ using namespace std;
 
 MatrixData::MatrixData()
 {
+    data = NULL;
+    scalings = NULL;
     scal_thresh = 1e-10;
     scalar = 10;
     // XXX this should probably be unsigned, in which case I wont have the
@@ -22,6 +24,8 @@ MatrixData::MatrixData(float scal_thresh, float scalar)
 {
     this->scal_thresh = scal_thresh;
     this->scalar = scalar;
+    data = NULL;
+    scalings = NULL;
 
     // XXX this should probably be unsigned, in which case I wont have the
     // option of a sentry value
@@ -30,7 +34,8 @@ MatrixData::MatrixData(float scal_thresh, float scalar)
 
 MatrixData::~MatrixData()
 {
-
+    delete[] data;
+    delete[] scalings;
 }
 
 
@@ -138,8 +143,9 @@ void MatrixData::set_data(  float* data,
                             int num_cols)
 {
     orig_id = (long) data;
-    if (this->data != NULL) delete[] this->data;
-    if (this->scalings != NULL) delete[] this->scalings;
+    //if (this->data != NULL) delete[] this->data;
+    //if (this->scalings != NULL) delete[] this->scalings;
+    scalings_clean = false;
     this->data = data;
     this->num_rows = num_rows;
     this->num_cols = num_cols;
@@ -153,8 +159,9 @@ void MatrixData::set_data(  double* data,
                             int num_cols)
 {
     orig_id = (long) data;
-    if (this->data != NULL) delete[] this->data;
-    if (this->scalings != NULL) delete[] this->scalings;
+    //if (this->data != NULL) delete[] this->data;
+    //if (this->scalings != NULL) delete[] this->scalings;
+    scalings_clean = false;
     //cout << " ...done!" << endl;
     // XXX this needs to change to something that casts the data...
     // XXX and does the scaling beforehand...
@@ -317,7 +324,7 @@ void MatrixData::pad_to(int interval)
                     newData[r * num_cols + c] = 0.0f;
             }
         }
-        delete[] data;
+        // delete[] data;
         data = newData;
     }
     if (scalings != NULL)
@@ -334,7 +341,7 @@ void MatrixData::pad_to(int interval)
                     newScalings[r * num_cols + c] = 0;
             }
         }
-        delete[] scalings;
+        //delete[] scalings;
         scalings = newScalings;
     }
 }

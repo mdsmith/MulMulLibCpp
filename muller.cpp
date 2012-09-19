@@ -151,7 +151,7 @@ void Muller::update_matrix( Matrix &m,
                             int num_cols
                             )
 {
-    m.get_data().update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
+    m.get_data()->update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
     /*
     float* start = m.data + offset;
     int sr = offset / m.num_cols;
@@ -172,7 +172,7 @@ void Muller::update_matrix( Matrix &m,
                             int num_cols
                             )
 {
-    m.get_data().update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
+    m.get_data()->update_data(data, row_offset, col_offset, h, w, num_rows, num_cols);
 }
 
 
@@ -183,7 +183,7 @@ void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
     bool md_set = false;
     if (A.is_set() && !md_set)
     {
-        if (A.get_data().get_id() == orig_id)
+        if (A.get_data()->get_id() == orig_id)
         {
             m.set_data(A.get_data());
             md_set = true;
@@ -191,7 +191,7 @@ void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
     }
     if (B.is_set() && !md_set)
     {
-        if (B.get_data().get_id() == orig_id)
+        if (B.get_data()->get_id() == orig_id)
         {
             m.set_data(B.get_data());
             md_set = true;
@@ -199,7 +199,7 @@ void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
     }
     if (C.is_set() && !md_set)
     {
-        if (C.get_data().get_id() == orig_id)
+        if (C.get_data()->get_id() == orig_id)
         {
             m.set_data(C.get_data());
             md_set = true;
@@ -207,8 +207,8 @@ void Muller::set_matrix(Matrix &m, float* data, int num_rows, int num_cols)
     }
     if (!md_set)
     {
-        MatrixData md;
-        md.set_data(data, num_rows, num_cols);
+        MatrixData* md = new MatrixData();
+        md->set_data(data, num_rows, num_cols);
         m.set_data(md);
         md_set = true;
     }
@@ -233,7 +233,7 @@ void Muller::set_matrix(Matrix &m, double* data, int num_rows, int num_cols)
     bool md_set = false;
     if (A.is_set() && !md_set)
     {
-        if (A.get_data().get_id() == orig_id)
+        if (A.get_data()->get_id() == orig_id)
         {
             m.set_data(A.get_data());
             md_set = true;
@@ -241,7 +241,7 @@ void Muller::set_matrix(Matrix &m, double* data, int num_rows, int num_cols)
     }
     if (B.is_set() && !md_set)
     {
-        if (B.get_data().get_id() == orig_id)
+        if (B.get_data()->get_id() == orig_id)
         {
             m.set_data(B.get_data());
             md_set = true;
@@ -249,7 +249,7 @@ void Muller::set_matrix(Matrix &m, double* data, int num_rows, int num_cols)
     }
     if (C.is_set() && !md_set)
     {
-        if (C.get_data().get_id() == orig_id)
+        if (C.get_data()->get_id() == orig_id)
         {
             m.set_data(C.get_data());
             md_set = true;
@@ -257,8 +257,8 @@ void Muller::set_matrix(Matrix &m, double* data, int num_rows, int num_cols)
     }
     if (!md_set)
     {
-        MatrixData md;
-        md.set_data(data, num_rows, num_cols);
+        MatrixData* md = new MatrixData();
+        md->set_data(data, num_rows, num_cols);
         m.set_data(md);
         md_set = true;
     }
@@ -285,7 +285,7 @@ void Muller::print_A()
 
 void Muller::print_A(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    A.get_data().print_mat(row_offset, col_offset, num_rows, num_cols);
+    A.get_data()->print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 void Muller::print_B()
@@ -296,7 +296,7 @@ void Muller::print_B()
 
 void Muller::print_B(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    B.get_data().print_mat(row_offset, col_offset, num_rows, num_cols);
+    B.get_data()->print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 void Muller::print_C()
@@ -307,7 +307,7 @@ void Muller::print_C()
 
 void Muller::print_C(int row_offset, int col_offset, int num_rows, int num_cols)
 {
-    C.get_data().print_mat(row_offset, col_offset, num_rows, num_cols);
+    C.get_data()->print_mat(row_offset, col_offset, num_rows, num_cols);
 }
 
 
