@@ -91,7 +91,7 @@ void print_float_mat(float* m, int row_offset, int col_offset, int h, int w, int
         {
             if (c > col_offset && c < col_offset + w)
                 cout << ",";
-            printf("%4.4f", m[r*nc + c]);
+            printf("%g", m[r*nc + c]);
         }
         if (r < row_offset + h-1)
 #if defined WOLFRAM
@@ -116,7 +116,7 @@ void print_double_mat(double* m, int row_offset, int col_offset, int h, int w, i
         {
             if (c > col_offset && c < col_offset + w)
                 cout << ",";
-            printf("%4.4f", m[r*nc + c]);
+            printf("%g", m[r*nc + c]);
         }
         if (r < row_offset + h-1)
 #if defined WOLFRAM

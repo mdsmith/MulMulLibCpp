@@ -67,6 +67,8 @@ void GPUMuller::set_A(float* A, int num_rows, int num_cols)
 
 void GPUMuller::set_A(double* A, int num_rows, int num_cols)
 {
+    //cout << "printing treecache: " << endl;
+    //print_double_mat(A, 0,0, num_rows, num_cols, num_rows, num_cols);
     if (ctx != NULL)
         cleanBuff = false;
     Muller::set_A(A, num_rows, num_cols);
@@ -238,7 +240,6 @@ void GPUMuller::setup_context()
 
 void GPUMuller::update_buffers()
 {
-    // XXX This is most likely all incorrect...
     // array rounding
     //if (    A.get_data()->get_scaled_float() == B.get_data()->get_scaled_float()
         //&&  A.get_data()->get_scaled_float() == C.get_data()->get_scaled_float())
@@ -323,8 +324,8 @@ void GPUMuller::update_buffers()
 */
 
     // work dim setup
-    global_work_size[0] = round_up(A.get_bound_rows(),PAD_SIZE);
-    global_work_size[1] = round_up(B.get_bound_cols(),PAD_SIZE);
+    global_work_size[0] = round_up(B.get_bound_cols(),PAD_SIZE);
+    global_work_size[1] = round_up(A.get_bound_rows(),PAD_SIZE);
     local_work_size[0] = BLOCK_SIZE;
     local_work_size[1] = BLOCK_SIZE;
 
@@ -537,6 +538,36 @@ void GPUMuller::multiply()
     cl_int temp_c_col_offset = C.get_col_offset();
     cl_bool temp_overwrite = overwrite;
 
+/*
+    cout    << "AH, AW, ARO, ACO: "
+            << temp_ah << ", "
+            << temp_ud << ", "
+            << temp_a_row_offset << ", "
+            << temp_a_col_offset << ", "
+            << endl
+            << "BH, BW, BRO, BCO: "
+            << temp_ud << ", "
+            << temp_bw << ", "
+            << temp_b_row_offset << ", "
+            << temp_b_col_offset << ", "
+            << endl
+            << "CH, CW, CRO, CCO: "
+            << temp_ah << ", "
+            << temp_bw << ", "
+            << temp_c_row_offset << ", "
+            << temp_c_col_offset << ", "
+            << endl
+            << "row bound: "
+            << temp_bw << ", "
+            << " col bound: "
+            << temp_ah
+            << endl
+            << "overwrite: "
+            << overwrite
+            << endl;
+*/
+
+
     // set kernel args
     err_num  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *) &d_A);
     err_num |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *) &d_As);
@@ -642,6 +673,8 @@ void GPUMuller::read_C( int offset, // This is the offset for both the GPU
                                     NULL);
 
 /*
+    cout    << "Offset: " << offset
+            << ", size: " << size;
     cout << "C fresh off the gpu: " << endl;
     cout << "size " << size << endl;
     for (int i = 0; i < size; i++)
@@ -697,12 +730,18 @@ void GPUMuller::eval_C(int row_offset, int col_offset, int height, int width)
     else
         check_buffers();
 
-    //cout << "After rebounding: " << endl;
-    //print_A();
-    //print_B();
+    print_A(); // XXX temp
+    print_B(); // XXX temp
 
     multiply();
+    read_C( 0,
+            C.get_data()->get_total_rows() * C.get_data()->get_total_cols(),
+            C.get_data()->get_scaled_float(),
+            C.get_data()->get_scalings()); // XXX temp
+    /*
+    */
     evaluated = true;
+    print_C(); // XXX temp
     //cout << "C after multiply: " << endl;
     //print_C(0, 0, C.get_total_rows(), C.get_total_cols());
 }
@@ -740,11 +779,14 @@ float* GPUMuller::get_C(int row_offset, int col_offset, int height, int width)
     //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
     //<< " w: " << width << endl;
 
-    return C.get_data()->get_slice(row_offset, col_offset, width, height);
+    return C.get_data()->get_slice(row_offset, col_offset, height, width);
 }
 
 double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int width)
 {
+    //cout << "A id is: " << A.get_data()->get_id() << endl;
+    //cout << "B id is: " << B.get_data()->get_id() << endl;
+    //cout << "C id is: " << C.get_data()->get_id() << endl;
     // XXX um, how about we use the actual offsets?
     if (!evaluated)
     {
@@ -757,24 +799,24 @@ double* GPUMuller::get_C_double(int row_offset, int col_offset, int height, int 
             C.get_data()->get_scalings());
 
 
-    // XXX something is broken here if they're printing different things.
-    /*
-    C.print_total();
+    //C.get_data()->print_mat(row_offset, col_offset, height, width);
     cout << endl << endl << endl;
-    cout << "root conditionals: " << endl;
-    double* test = C.get_slice_double(row_offset, col_offset, width, height);
+    cout << "Root conditionals earlier: " << endl;
+    double* test = C.get_data()->get_slice_double(row_offset, col_offset, width, height);
     for (int i = 0; i < width*height; i++)
     {
         cout << test[i] << " ";
         if (i % width == 0)
             cout << endl;
     }
+    /*
     */
 
     //cout << "RO: " << row_offset << " CO: " << col_offset << " h: " << height
     //<< " w: " << width << endl;
 
-    return C.get_data()->get_slice_double(row_offset, col_offset, width, height);
+    return C.get_data()->get_slice_double(row_offset, col_offset, height,
+    width);
 }
 
 

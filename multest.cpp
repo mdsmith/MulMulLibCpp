@@ -55,24 +55,25 @@ int main()
     int allpasscode = 0;
 
     srand(time(NULL));
+    //printf("HI! %4.20f", 1.0e-10);
 
     for (int i = 0; i < ANR*ANC; i++)
     {
-        A[i] = ((rand()%1000)+1)/1000.0;
+        A[i] = ((rand()%1000)+1)/(1.0e10);
     }
     for (int i = 0; i < BNR*BNC; i++)
     {
-        B[i] = ((rand()%1000)+1)/1000.0;
+        B[i] = ((rand()%1000)+1)/(1.0e10);
     }
-    /*
     cout << "A at the start: " << endl;
-    print_float_mat(A, 0, 0, ANR, ANC, ANR, ANC);
+    print_double_mat(A, 0, 0, ANR, ANC, ANR, ANC);
     cout << "A bound: " << endl;
-    print_float_mat(A, ARO, ACO, AH, UD, ANR, ANC);
+    print_double_mat(A, ARO, ACO, AH, UD, ANR, ANC);
     cout << "B at the start: " << endl;
-    print_float_mat(B, 0, 0, BNR, BNC, BNR, BNC);
+    print_double_mat(B, 0, 0, BNR, BNC, BNR, BNC);
     cout << "B bound: " << endl;
-    print_float_mat(B, BRO, BCO, UD, BW, BNR, BNC);
+    print_double_mat(B, BRO, BCO, UD, BW, BNR, BNC);
+    /*
     */
 
     timeval t1, t2;

@@ -12,8 +12,8 @@ MatrixData::MatrixData()
 {
     data = NULL;
     scalings = NULL;
-    scal_thresh = 1e-10;
-    scalar = 10;
+    scal_thresh = 1.0e-10f;
+    scalar = 10.0f;
     // XXX this should probably be unsigned, in which case I wont have the
     // option of a sentry value
     orig_id = -1;
@@ -199,7 +199,7 @@ void MatrixData::print_mat(int row_offset, int col_offset, int num_rows, int num
 
             printf( "%4.4f",
                     data[i*this->num_cols + j] *
-                    pow(10.0, scalings[i*this->num_cols + j])
+                    pow(scalar, scalings[i*this->num_cols + j])
                     );
         }
         if (i < row_offset + num_rows-1)
@@ -264,42 +264,72 @@ void MatrixData::update_data(   double* new_data,    // new data to be subbed
 
 
 // Expensive, memory creating and copying
-float* MatrixData::get_slice(int row_offset, int col_offset, int width, int height)
+float* MatrixData::get_slice(   int row_offset,
+                                int col_offset,
+                                int height,
+                                int width)
 {
     float* tbr = new float[width*height];
-    for (int r = row_offset; r < row_offset + height; r++)
-        for (int c = col_offset; c < col_offset + width; c++)
+    for (int r = 0; r < height; r++)
+        for (int c = 0; c < width; c++)
             if (r < num_rows && c < num_cols)
-                tbr[r*width + c] =  data[r*num_cols + c]
-                                    * pow(  10.0,
-                                            (double)(scalings[  r*num_cols
-                                                                + c])
+                tbr[r*width + c] =  data[   row_offset
+                                            * num_cols
+                                            + col_offset
+                                            + r
+                                            * num_cols
+                                            + c
+                                        ]
+                                    * pow(  scalar,
+                                            (double)(scalings[  row_offset
+                                                                * num_cols
+                                                                + col_offset
+                                                                + r
+                                                                * num_cols
+                                                                + c
+                                                             ]
+                                                    )
                                             );
     return tbr;
-
 }
 
 
-double* MatrixData::get_slice_double(int row_offset, int col_offset, int width, int height)
+double* MatrixData::get_slice_double(   int row_offset,
+                                        int col_offset,
+                                        int height,
+                                        int width)
 {
     double* tbr = new double[width*height];
-    for (int r = row_offset; r < row_offset + height; r++)
+    for (int r = 0; r < height; r++)
     {
-        for (int c = col_offset; c < col_offset + width; c++)
+        for (int c = 0; c < width; c++)
         {
             if (r < num_rows && c < num_cols)
             {
-                // XXX HERE scaling messing with numbers here?
-                tbr[r*width + c] =  (double)data[r*num_cols + c]
-                                    * pow(  10.0,
-                                            (double)(scalings[  r*num_cols
-                                                                + c])
-                                            );
+                tbr[r*width + c] =  (double)data[   row_offset
+                                                    * num_cols
+                                                    + col_offset
+                                                    + r
+                                                    * num_cols
+                                                    + c
+                                                ]
+                                    * pow(  scalar,
+                                            (double)(scalings[  row_offset
+                                                                * num_cols
+                                                                + col_offset
+                                                                + r
+                                                                * num_cols
+                                                                + c
+                                                             ]
+                                                    )
+                                         );
             }
         }
     }
+    //print_double_mat(tbr, 0,0,height,width,height,width);
+    //print_float_mat(data,
+    //row_offset,col_offset,height,width,num_rows,num_cols);
     return tbr;
-
 }
 
 
