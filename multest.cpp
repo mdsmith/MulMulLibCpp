@@ -59,11 +59,11 @@ int main()
 
     for (int i = 0; i < ANR*ANC; i++)
     {
-        A[i] = ((rand()%1000)+1)/(1.0e10);
+        A[i] = ((rand()%1000)+1)/(1.0e16);
     }
     for (int i = 0; i < BNR*BNC; i++)
     {
-        B[i] = ((rand()%1000)+1)/(1.0e10);
+        B[i] = ((rand()%1000)+1)/(1.0e16);
     }
     cout << "A at the start: " << endl;
     print_double_mat(A, 0, 0, ANR, ANC, ANR, ANC);

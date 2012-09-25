@@ -195,10 +195,11 @@ void MatrixData::print_mat(int row_offset, int col_offset, int num_rows, int num
         for (int j = col_offset; j < col_offset + num_cols; j++)
         {
             if (j > col_offset && j < col_offset + num_cols)
-                cout << ",";
+                cout << ", ";
 
-            printf( "%4.4f",
-                    data[i*this->num_cols + j] *
+            //printf( "%g x %g",
+            printf( "%g",
+                    data[i*this->num_cols + j] /
                     pow(scalar, scalings[i*this->num_cols + j])
                     );
         }
@@ -280,7 +281,7 @@ float* MatrixData::get_slice(   int row_offset,
                                             * num_cols
                                             + c
                                         ]
-                                    * pow(  scalar,
+                                    / pow(  scalar,
                                             (double)(scalings[  row_offset
                                                                 * num_cols
                                                                 + col_offset
@@ -313,7 +314,7 @@ double* MatrixData::get_slice_double(   int row_offset,
                                                     * num_cols
                                                     + c
                                                 ]
-                                    * pow(  scalar,
+                                    / pow(  scalar,
                                             (double)(scalings[  row_offset
                                                                 * num_cols
                                                                 + col_offset
